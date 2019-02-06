@@ -226,24 +226,24 @@ if (scanline == 261 && pixelOnScanline == 301) {
 	pixelOnFrame++;
 	pixelOnScanline++;
 }
-function getChrColor(tileOffset, tileX, isBg) {
+function getChrColor(tileOffset, tileX) {
 	switch (tileX) {
 			case 0:
-				return ((mapChrRead(tileOffset, isBg) >> 7) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 6) & 0x02);
+				return ((ppuMemory[tileOffset] >> 7) & 0x01) | ((ppuMemory[tileOffset+8] >> 6) & 0x02);
 			case 1:
-				return ((mapChrRead(tileOffset, isBg) >> 6) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 5) & 0x02);
+				return ((ppuMemory[tileOffset] >> 6) & 0x01) | ((ppuMemory[tileOffset+8] >> 5) & 0x02);
 			case 2:
-				return ((mapChrRead(tileOffset, isBg) >> 5) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 4) & 0x02);
+				return ((ppuMemory[tileOffset] >> 5) & 0x01) | ((ppuMemory[tileOffset+8] >> 4) & 0x02);
 			case 3:
-				return ((mapChrRead(tileOffset, isBg) >> 4) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 3) & 0x02);
+				return ((ppuMemory[tileOffset] >> 4) & 0x01) | ((ppuMemory[tileOffset+8] >> 3) & 0x02);
 			case 4:
-				return ((mapChrRead(tileOffset, isBg) >> 3) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 2) & 0x02);
+				return ((ppuMemory[tileOffset] >> 3) & 0x01) | ((ppuMemory[tileOffset+8] >> 2) & 0x02);
 			case 5:
-				return ((mapChrRead(tileOffset, isBg) >> 2) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 1) & 0x02);
+				return ((ppuMemory[tileOffset] >> 2) & 0x01) | ((ppuMemory[tileOffset+8] >> 1) & 0x02);
 			case 6:
-				return ((mapChrRead(tileOffset, isBg) >> 1) & 0x01) | ((mapChrRead(tileOffset+8, isBg)) & 0x02);
+				return ((ppuMemory[tileOffset] >> 1) & 0x01) | ((ppuMemory[tileOffset+8]) & 0x02);
 			case 7:
-				return ((mapChrRead(tileOffset, isBg)) & 0x01) | ((mapChrRead(tileOffset+8, isBg) << 1) & 0x02);
+				return ((ppuMemory[tileOffset]) & 0x01) | ((ppuMemory[tileOffset+8] << 1) & 0x02);
 		}
 }
 function ppuIsVblank() {

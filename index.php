@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
 	<meta charset="utf-8" />
+	<title>NEZ - play NES while surfing the WWW :O</title>
+	<meta property="og:title" content="NEZ - play NES while surfing the WWW :O" />
+	<meta property="og:url" content="http://eternal.dk/emu/" />
+	<meta property="og:image" content="nez.png" />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="NEZ - play NES while surfing the WWW :O" />
+	<meta name="twitter:description" content="A JavaScript based NES emulator" />
+	<meta name="twitter:image" content="http://eternal.dk/emu/nez.png" />
+	<meta name="twitter:creator" content="@sumez" />
 	<script id="colorFragment" type="x-shader/x-fragment">
 		uniform lowp vec4 uColor;
 		void main(void) {
@@ -46,7 +54,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 </head>
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
-	<script type="text/javascript" src="emulatorscript.php"></script>
+	<script type="text/javascript" src="emulatorscript.php?1"></script>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 	<img src="nez.png" style="display: none;" class="logo" />
 	<div class="emulator">
@@ -402,13 +410,13 @@
 	</h2>
 	<div class="text" style="display: none;">
 	This is an emulator started as a short experiment to test how feasible it even was to pull off such a thing in JavaScript, and quickly improved to support many more games and features than I thought it possibly could, but it is also still evolving.<br />
-	If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href=https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
+	If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href="https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
 	~ Sumez<br />
 	<br />
 	Features currently in the pipline for the future:<br /><br />
 	<strong>Support / accuracy:</strong>
 	<ul>
-		<li>Support for less common mappers (most notably MMC5, VRC6 and MMC2)</li>
+		<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
 		<li>50hz/PAL support</li>
 		<li>Famicom Disk System support</li>
 		<li>Improve CPU/PPU cycle synchronization</li>
@@ -420,7 +428,7 @@
 	<ul>
 		<li>Better performance across all areas (most notably audio/APU emulation)</li>
 		<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
-		<li>Re-implement mappers to actually map addresses, rather than just copying data around</li>
+		<li><s>Re-implement mappers to actually map addresses, rather than just copying data around</s> find a new way to do this without a huge performance overhead</li>
 		<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>
 	</ul>
 	</div>

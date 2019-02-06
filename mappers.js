@@ -39,6 +39,26 @@ function initChrBanks(size, isRam, banks) {
 	if (isRam) mapChrWrite = function (address, value) {
 		chrData[(chrBanks[address >> shiftAmount] << shiftAmount) | (address & bankMask)] = value;
 	};
+	getChrColor = function(tileOffset, tileX, isBg) {
+		switch (tileX) {
+				case 0:
+					return ((mapChrRead(tileOffset, isBg) >> 7) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 6) & 0x02);
+				case 1:
+					return ((mapChrRead(tileOffset, isBg) >> 6) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 5) & 0x02);
+				case 2:
+					return ((mapChrRead(tileOffset, isBg) >> 5) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 4) & 0x02);
+				case 3:
+					return ((mapChrRead(tileOffset, isBg) >> 4) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 3) & 0x02);
+				case 4:
+					return ((mapChrRead(tileOffset, isBg) >> 3) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 2) & 0x02);
+				case 5:
+					return ((mapChrRead(tileOffset, isBg) >> 2) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 1) & 0x02);
+				case 6:
+					return ((mapChrRead(tileOffset, isBg) >> 1) & 0x01) | ((mapChrRead(tileOffset+8, isBg)) & 0x02);
+				case 7:
+					return ((mapChrRead(tileOffset, isBg)) & 0x01) | ((mapChrRead(tileOffset+8, isBg) << 1) & 0x02);
+			}
+	}
 }
 
 
