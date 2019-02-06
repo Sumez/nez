@@ -1,6 +1,14 @@
 
 const illegalOpcodes = true;
 
+function addrRead(address) {
+	return mapRead[address & 0xC000 ? 1 : 0](address);
+}
+function addrWrite(address, value) {
+	return mapWrite[address & 0xC000 ? 1 : 0](address, value);
+}
+
+
 	var referenceBuffer = new ArrayBuffer(2);
 	var referenceBytes = new Uint8Array(referenceBuffer);
 	var reference = new Uint16Array(referenceBuffer);
@@ -135,8 +143,8 @@ window.testOp = function() {
 
 	opcodes[CLC] = function() { c = false; };
 	opcodes[SEC] = function() { c = true; };
-	opcodes[CLI] = function() { i = false; };
-	opcodes[SEI] = function() { i = true; };
+	opcodes[CLI] = function() { interruptFlag = false; };
+	opcodes[SEI] = function() { interruptFlag = true; };
 	opcodes[CLV] = function() { v = false; };
 	opcodes[CLD] = function() {  };
 	opcodes[SED] = function() {  };
@@ -339,7 +347,7 @@ window.testOp = function() {
 		if (offsetByRegister >= 0) address = (address + cpuRegisters[offsetByRegister]) & (isZP ? 0xff : 0xffff);
 		var val = (hwRegisters[address] && hwRegisters[address].read)
 		? hwRegisters[address].read()
-		: cpuMemory[address];
+		: addrRead(address);
 		
 		val = lsr(val, carry);
 		if (hwRegisters[address]) {
@@ -348,14 +356,14 @@ window.testOp = function() {
 			}
 		}
 		else {
-			cpuMemory[address] = val;
+			addrWrite(address, val);
 		}
 	}
 	function aslA(address, offsetByRegister, carry, isZP) {
 		if (offsetByRegister >= 0) address = (address + cpuRegisters[offsetByRegister]) & (isZP ? 0xff : 0xffff);
 		var val = (hwRegisters[address] && hwRegisters[address].read)
 		? hwRegisters[address].read()
-		: cpuMemory[address];
+		: addrRead(address);
 		
 		val = asl(val, carry);
 		if (hwRegisters[address]) {
@@ -364,7 +372,7 @@ window.testOp = function() {
 			}
 		}
 		else {
-			cpuMemory[address] = val;
+			addrWrite(address, val);
 		}
 	}
 
@@ -440,7 +448,7 @@ window.testOp = function() {
 		if (offsetByRegister >= 0) address = (address + cpuRegisters[offsetByRegister]) & (isZP ? 0xff : 0xffff);
 		var val = (hwRegisters[address] && hwRegisters[address].read)
 		? hwRegisters[address].read()
-		: cpuMemory[address];
+		: addrRead(address);
 
 		if (hwRegisters[address]) {
 			if (hwRegisters[address].store) {
@@ -450,9 +458,9 @@ window.testOp = function() {
 			val += amount;
 		}
 		else {
-			cpuMemory[address] = val;
+			addrWrite(address, val);
 			val += amount;
-			cpuMemory[address] = val;
+			addrWrite(address, val);
 		}
 		z = ((val & 0xff) === 0);
 		n = ((val & 0xff) >= 128);
@@ -468,7 +476,7 @@ window.testOp = function() {
 			return hwRegisters[address].read();
 		}
 		else {
-			return cpuMemory[address];
+			return addrRead(address);
 		}
 	}
 	function loadValue(value, registerOffset) {
@@ -489,12 +497,11 @@ window.testOp = function() {
 			if (hwRegisters[address].store) hwRegisters[address].store(cpuRegisters[registerOffset], address);
 		}
 		else {
-			cpuMemory[address] = cpuRegisters[registerOffset];
+			addrWrite(address, cpuRegisters[registerOffset]);
 		}
 	}
 	function indirectY(free) {
 		var zp = param8();
-		// TODO: what if zero page address if $ff?
 		var addr1 = cpuMemory[zp] + (cpuMemory[(zp+1) & 0xff] << 8);
 		var addr2 = (addr1 + cpuRegisters[Y]) & 0xffff;
 		if (!free & ((addr1 & 0xFF00) != (addr2 & 0xFF00))) currentCycleCount++;
@@ -502,16 +509,15 @@ window.testOp = function() {
 	}
 	function indirectX() {
 		var zp = param8() + cpuRegisters[X];
-		// TODO: what if zero page address if $ff?
 		return cpuMemory[zp & 0xff] + (cpuMemory[(zp+1) & 0xff] << 8);
 	}
 	function param16() {
-		var val = cpuMemory[pc[0]] + (cpuMemory[pc[0]+1] << 8);
+		var val = addrRead(pc[0]) + (addrRead(pc[0]+1) << 8);
 		pc[0] += 2;
 		return val;
 	}
 	function param8() {
-		var val = cpuMemory[pc[0]];
+		var val = addrRead(pc[0]);
 		pc[0]++;
 		return val;
 	}

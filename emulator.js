@@ -1,4 +1,4 @@
-// TODO: Color emphasis, palette change artifacts, prevent clipping on mixing, performance optimization, FDS?
+// TODO: Color emphasis, fix timing(?) issues (space soviets), MMC5, VRC6, performance optimization, FDS?, PAL support?
 
 window.emu = (function() {
 	
@@ -10,7 +10,6 @@ window.emu = (function() {
 
 	var cpuMemoryBuffer = new ArrayBuffer(0x10000);
 	var cpuMemory = new Uint8Array(cpuMemoryBuffer);
-	var vectors = new Uint16Array(cpuMemoryBuffer, 0xfffa, 3);
 	var stack = new Uint8Array(cpuMemoryBuffer, 0x100, 0x100);
 	
 	var ppuMemoryBuffer = new ArrayBuffer(0x4000);
@@ -43,10 +42,14 @@ window.emu = (function() {
 	var n = false;
 	var z = false;
 	var v = false;
-	var i = false;
+	var interruptFlag = false;
 	
 	var loaded = false;
 	var mappers = [];
+	
+	var mapRead = [];
+	var mapWrite = [];
+	var mapChrRead, mapChrWrite;
 
 <?php
 
@@ -88,6 +91,32 @@ include 'mappers.js';
 		loaded = true;
 	}
 	
+	var openBus = 0; // TODO!
+	function readCpu(address) {
+		if (!(address & 0xE000)) return cpuMemory[address & 0x07FF]; // Mirrors RAM
+		// The rest is registers. If no register is available, use open bus behavior
+		return openBus;
+	}
+	function writeCpu(address, value) {
+		if (!(address & 0xE000)) cpuMemory[address & 0x07FF] = value;
+	}
+	function readCart(address) {
+		return cpuMemory[address]; // Dummy function for NROM, etc.
+		// TODO: openBus below 0x8000 unless mapper allows it
+	}
+	function writeCart(address, value) {
+		cpuMemory[address] = value;
+	}
+	function vector(index) {
+		return mapRead[1](0xfffa + (index * 2)) | (mapRead[1](0xfffa + 1 + (index * 2)) << 8);
+	}
+	function readChr(address) {
+		return ppuMemory[address];
+	}
+	function writeChr(address, value) {
+		if (chrRam) ppuMemory[address] = value;
+	}
+	
 	
 	
 	function LoadRomData(data, filename) {
@@ -109,6 +138,13 @@ include 'mappers.js';
 		saveRam = (header[6] & 2) != 0;
 		var mapperId = (header[6] & 0xf0) >> 4;
 		mapperId |= header[7] & 0xf0;
+		
+		mapRead[0] = readCpu;
+		mapRead[1] = readCart;
+		mapWrite[0] = writeCpu;
+		mapWrite[1] = writeCart;
+		mapChrRead = readChr;
+		mapChrWrite = writeChr;
 		
 		var hwRegisters = {};
 		setPpuRegisters();
@@ -177,7 +213,7 @@ include 'mappers.js';
 		ppuReset();
 		apu.init();
 		
-		pc[0] = vectors[RESET];
+		pc[0] = vector(RESET);
 
 		//setInterval(ppuAdvanceFrame, 1000 / 60);
 		runPc();
@@ -227,7 +263,8 @@ include 'mappers.js';
 	var breakpoints = [];
 	var timing;
 	var currentCycleCount;
-	var pendingIrq = -1;
+	var pendingIrq = false;
+	var pendingNmi = false;
 	var frameEnded = false;
 	function runPc() {
 		timing = window.requestAnimationFrame(ppuAdvanceFrame);
@@ -250,7 +287,7 @@ include 'mappers.js';
 			// debug end
 
 			currentCycleCount = 0;
-			var opcode = cpuMemory[pc[0]];
+			var opcode = mapRead[pc[0] & 0xC000 ? 1 : 0](pc[0]);
 			
 			//if (pc[0] == 0 || pc[0] == 0x85DF) debugger;
 			pc[0]++;
@@ -264,7 +301,11 @@ include 'mappers.js';
 			}
 			
 			func();
-			if (pendingIrq >= 0) acknowledgeIrq();
+			if (pendingNmi) {
+				jumpToIrq(NMI);
+				pendingNmi = false;
+			}
+			else if (pendingIrq && !interruptFlag) jumpToIrq(IRQ);
 			
 			if (opcodeCycles[opcode]) currentCycleCount += opcodeCycles[opcode];
 			cycleCounts[0] += currentCycleCount;
@@ -279,7 +320,7 @@ include 'mappers.js';
 				var newCount = cycleCounter[0] - currentCycleCount;
 				if (newCount <= 0) {
 					newCount == 0;
-					if (cycleIrqEnabled) irq(IRQ);
+					if (cycleIrqEnabled) pendingIrq = true;
 				}
 				cycleCounter[0] = newCount;
 			}
@@ -303,28 +344,25 @@ include 'mappers.js';
 		}
 	}
 	
-	function acknowledgeIrq() {
+	function jumpToIrq(irqVector) {
 		currentCycleCount += 7;
 		push(pcByte[1]);
 		push(pcByte[0]);
 		push(getFlags())
-		i = true;
-		pc[0] = vectors[pendingIrq];
-		pendingIrq = -1;
-	}
-	function irq(vector) {
-		pendingIrq = vector;
+		interruptFlag = true;
+		pc[0] = vector(irqVector);
 	}
 	function returnFromIrq() {
 		setFlags(pull());
 		pcByte[0] = pull();
 		pcByte[1] = pull();
+		interruptFlag = false;
 	}
 	function getFlags(isBreak) {
 		return 0x20 // Interrupt flag
 		| (c ? 0x01 : 0)
 		| (z ? 0x02 : 0)
-//		| (INTERRUP_DISABLE ? 0x04 : 0)
+		| (interruptFlag ? 0x04 : 0)
 //		| (DECIMAL ? 0x08 : 0)
 		| (isBreak ? 0x10 : 0)
 		| (v ? 0x40 : 0)
@@ -333,6 +371,7 @@ include 'mappers.js';
 	function setFlags(value) {
 		c = ((value & 0x01) != 0);
 		z = ((value & 0x02) != 0);
+		interruptFlag = ((value & 0x04) != 0);
 		v = ((value & 0x40) != 0);
 		n = ((value & 0x80) != 0);
 	}
@@ -391,7 +430,8 @@ include 'mappers.js';
 		volume: SetMasterVolume,
 		useMouse: UseMouse,
 		isPlaying: function () { return loaded; },
-		buttonConfig: ButtonConfig
+		buttonConfig: ButtonConfig,
+		render: renderFrame
 		
 		
 	};

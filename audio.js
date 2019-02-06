@@ -266,7 +266,7 @@ var NewApu = (function() {
 		}
 		if (apuFrames >= lcClock3 && step == 3) {
 			apuClockLcSw(true);
-			if (enableFrameIrq) irq(IRQ);
+			if (enableFrameIrq) pendingFrameCount = true;
 			apuFrames -= lcClock2+1;
 			step = 0;
 		}

@@ -30,6 +30,7 @@ var xScroll = 0;
 var yScroll = 0;
 //var currentXscroll = 0;
 var currentY = 0;
+var globalBgColor = 0; // palette change glitches
 
 function ppuReset() {
 	frame = 0;
@@ -50,6 +51,7 @@ function ppuAdvanceFrame() {
 	frame++;
 	scanline = -1;
 	currentY = yScroll;
+	globalBgColor = 0;
 	currentNtIndex = ntIndex;
 	pixelOnFrame = 0;
 	pixelOnScanline = 0;
@@ -60,12 +62,14 @@ function ppuAdvanceFrame() {
 }
 var outputBuffer = new ArrayBuffer(256*256*4);
 var outputBytes = new Uint8Array(outputBuffer);
+var outputColorEdit = new Uint8ClampedArray(outputBuffer);
 var outputColors = new Uint32Array(outputBuffer);
 var scanlineSpriteBuffer = new Uint8Array(8 * 5);
 var sbi = 0;
 function ppuScanline() {
 	
 	scanline++;
+	if (mmc5ScanlineIrqEnabled && scanline == irqCounter[2]) pendingIrq = true;
 	
 	if (scanline >= 240) return;
 	var spriteHeight = tallSprites ? 16 : 8;
@@ -87,7 +91,8 @@ function ppuScanline() {
 		else {
 			yOffset += spriteIndex << 4;
 		}
-		
+		// Save as much info as possible in sprite buffer to speed up the ppuPixel function.
+		// The NES does something almost similar when evaluating sprites, so it shouldn't cause compatibility problems, aside from games that actually rely on corrupting sprite reads(?)
 		sbi += 5;
 		scanlineSpriteBuffer[sbi] = i; // reference
 		scanlineSpriteBuffer[sbi+1] = oamMemory[i + 3]; // X
@@ -111,27 +116,26 @@ function ppuPixel() {
 	
 	if (pixelOnScanline > 255) {
 		if (pixelOnScanline == 256) {
-			if (showBG) {
-				currentY++;
-				if (currentY == 256) currentY = 0;
-				if (currentY == 240) {
-					currentY = 0;
-					currentNtIndex ^= 2;
-				}
+			globalBgColor = 0;
+			currentY++;
+			if (currentY == 256) currentY = 0;
+			if (currentY == 240) {
+				currentY = 0;
+				currentNtIndex ^= 2;
 			}
 		}
 		if (pixelOnScanline == 260) {
 			if (irqCounter[0] == 0) irqCounter[0] = irqCounter[1]; // IRQ reload
 			else if (scanline < 240 && (showBG || showSprites)) {
 				irqCounter[0]--;
-				if (scanlineIrqEnabled && irqCounter[0] == 0) irq(IRQ);
+				if (scanlineIrqEnabled && irqCounter[0] == 0) pendingIrq = true;
 			}
 		}
 		pixelOnScanline++;
 		
-	if (scanline == 261 && pixelOnScanline == 301) {
-		frameEnded = true;
-	}
+if (scanline == 261 && pixelOnScanline == 301) {
+	frameEnded = true; // timing fix
+}
 
 		
 		if (pixelOnScanline == 341) pixelOnScanline = 0;
@@ -189,7 +193,7 @@ function ppuPixel() {
 		var tileX = (x & 7);
 		var tileIndex = ((currentY & 0xF8) << 2) | (x >> 3);
 		var tileOffset = bgChrIndex | (ntRef[tileIndex] << 4) | (currentY & 7);
-		var bgColor = getChrColor(tileOffset, tileX);
+		var bgColor = getChrColor(tileOffset, tileX, true);
 		if (bgColor && potentialHit) sprite0hit = true;
 		if (!color || bgColor && bgOnTop) {
 			color = bgColor;
@@ -200,29 +204,46 @@ function ppuPixel() {
 		}
 	}
 
-	if (color) outputColors[pixelOnFrame] = fullPalette[ppuPalettes[palette * 4 + color]];
-	else outputColors[pixelOnFrame] = fullPalette[ppuPalettes[0]];
+	var paletteColor = color ? ppuPalettes[palette * 4 + color] : ppuPalettes[globalBgColor];
+	if (grayscale) paletteColor &= 0x30;
+	outputColors[pixelOnFrame] = fullPalette[paletteColor];
+	
+	if (empR) {
+		outputColorEdit[pixelOnFrame*4] *= 1.1;
+		outputColorEdit[pixelOnFrame*4+1] *= 0.9;
+		outputColorEdit[pixelOnFrame*4+2] *= 0.9;
+	}
+	if (empG) {
+		outputColorEdit[pixelOnFrame*4] *= 0.9;
+		outputColorEdit[pixelOnFrame*4+1] *= 1.1;
+		outputColorEdit[pixelOnFrame*4+2] *= 0.9;
+	}
+	if (empB) {
+		outputColorEdit[pixelOnFrame*4] *= 0.9;
+		outputColorEdit[pixelOnFrame*4+1] *= 0.9;
+		outputColorEdit[pixelOnFrame*4+2] *= 1.1;
+	}
 	pixelOnFrame++;
 	pixelOnScanline++;
 }
-function getChrColor(tileOffset, tileX) {
+function getChrColor(tileOffset, tileX, isBg) {
 	switch (tileX) {
 			case 0:
-				return ((ppuMemory[tileOffset] >> 7) & 0x01) | ((ppuMemory[tileOffset+8] >> 6) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 7) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 6) & 0x02);
 			case 1:
-				return ((ppuMemory[tileOffset] >> 6) & 0x01) | ((ppuMemory[tileOffset+8] >> 5) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 6) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 5) & 0x02);
 			case 2:
-				return ((ppuMemory[tileOffset] >> 5) & 0x01) | ((ppuMemory[tileOffset+8] >> 4) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 5) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 4) & 0x02);
 			case 3:
-				return ((ppuMemory[tileOffset] >> 4) & 0x01) | ((ppuMemory[tileOffset+8] >> 3) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 4) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 3) & 0x02);
 			case 4:
-				return ((ppuMemory[tileOffset] >> 3) & 0x01) | ((ppuMemory[tileOffset+8] >> 2) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 3) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 2) & 0x02);
 			case 5:
-				return ((ppuMemory[tileOffset] >> 2) & 0x01) | ((ppuMemory[tileOffset+8] >> 1) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 2) & 0x01) | ((mapChrRead(tileOffset+8, isBg) >> 1) & 0x02);
 			case 6:
-				return ((ppuMemory[tileOffset] >> 1) & 0x01) | ((ppuMemory[tileOffset+8]) & 0x02);
+				return ((mapChrRead(tileOffset, isBg) >> 1) & 0x01) | ((mapChrRead(tileOffset+8, isBg)) & 0x02);
 			case 7:
-				return ((ppuMemory[tileOffset]) & 0x01) | ((ppuMemory[tileOffset+8] << 1) & 0x02);
+				return ((mapChrRead(tileOffset, isBg)) & 0x01) | ((mapChrRead(tileOffset+8, isBg) << 1) & 0x02);
 		}
 }
 function ppuIsVblank() {
@@ -236,7 +257,7 @@ function ppuIsVblank() {
 
 function pullNmi() {
 	if (!enableNmi) return;
-	irq(NMI);
+	pendingNmi = true;
 }
 
 var lastWrite = 0;
@@ -301,19 +322,20 @@ function ppuDataWrite(value) {
 	else if (writeAddress[0] >= 0x3F00) {
 		var effectiveAddress = writeAddress[0] & 0x3f1f;
 		if (effectiveAddress == 0x3F10) effectiveAddress = 0x3F00;
-		ppuMemory[effectiveAddress] = value;
+		ppuMemory[effectiveAddress] = value & 0x3f;
 	}
-	else if (chrRam) {
-		ppuMemory[writeAddress[0]] = value;
-	}
+	else mapChrWrite(writeAddress[0], value);
+		
 	setWriteAddress(writeAddress[0] + (vertical ? 32 : 1));
 }
 function setWriteAddress(value) {
-	writeAddress[0] = value & 0x3FFF;;
+	writeAddress[0] = value & 0x3FFF;
 	// Simulates the register "conflicts" when writing to PPUADDR mid-frame
 	// TODO: Would probably be a lot better to just replicate the W and T registers directly
 	currentY = ((writeAddress[0] >> 2) & 0xF8) | (writeAddressBytes[1] >> 4);
 	currentNtIndex = (writeAddressBytes[1] >> 2) & 3;
+	globalBgColor = 0;
+	if (writeAddress[0] >= 0x3F00) globalBgColor = writeAddress[0] & 31;
 }
 
 var oamAddressBuffer = new ArrayBuffer(2);
@@ -328,14 +350,14 @@ function ppuOamDma(value) {
 var readBuffer = 0;
 function ppuDataRead() {
 	var result = readBuffer;
-	if (writeAddress[0] >= 0x2000 && writeAddress[0] < 0x3F00) {
+	if (writeAddress[0] >= 0x2000 && writeAddress[0] < 0x3F00) { // Nametables
 		// Mirroring
 		readBuffer = nametables[(writeAddress[0] >> 10) & 3][writeAddress[0] & 0x3FF];
 	}
-	else if (writeAddress[0] < 0x3F00) {
-		readBuffer = ppuMemory[writeAddress];
+	else if (writeAddress[0] < 0x3F00) { // CHR
+		readBuffer = mapChrRead(writeAddress);
 	}
-	else {
+	else { // Palette data
 		readBuffer = ppuMemory[writeAddress[0]];
 		result = ppuMemory[writeAddress[0]];
 	}
@@ -540,14 +562,14 @@ function decompressChr() {
 	for (var i = 0; i < 0x2000; i += 8) {
 		
 		for (var j = 0; j < 8; j++) {
-			tiles[tileIndex] = (ppuMemory[i] & 0x80) >> 7 | (ppuMemory[i+8] & 0x80) >> 6
-			tiles[tileIndex+1] = (ppuMemory[i] & 0x40) >> 6 | (ppuMemory[i+8] & 0x40) >> 5
-			tiles[tileIndex+2] = (ppuMemory[i] & 0x20) >> 5 | (ppuMemory[i+8] & 0x20) >> 4
-			tiles[tileIndex+3] = (ppuMemory[i] & 0x10) >> 4 | (ppuMemory[i+8] & 0x10) >> 3
-			tiles[tileIndex+4] = (ppuMemory[i] & 0x08) >> 3 | (ppuMemory[i+8] & 0x08) >> 2
-			tiles[tileIndex+5] = (ppuMemory[i] & 0x04) >> 2 | (ppuMemory[i+8] & 0x04) >> 1
-			tiles[tileIndex+6] = (ppuMemory[i] & 0x02) >> 1 | (ppuMemory[i+8] & 0x02)
-			tiles[tileIndex+7] = (ppuMemory[i] & 0x01) | (ppuMemory[i+8] & 0x01) << 1
+			tiles[tileIndex] = (mapChrRead(i) & 0x80) >> 7 | (mapChrRead(i+8) & 0x80) >> 6
+			tiles[tileIndex+1] = (mapChrRead(i) & 0x40) >> 6 | (mapChrRead(i+8) & 0x40) >> 5
+			tiles[tileIndex+2] = (mapChrRead(i) & 0x20) >> 5 | (mapChrRead(i+8) & 0x20) >> 4
+			tiles[tileIndex+3] = (mapChrRead(i) & 0x10) >> 4 | (mapChrRead(i+8) & 0x10) >> 3
+			tiles[tileIndex+4] = (mapChrRead(i) & 0x08) >> 3 | (mapChrRead(i+8) & 0x08) >> 2
+			tiles[tileIndex+5] = (mapChrRead(i) & 0x04) >> 2 | (mapChrRead(i+8) & 0x04) >> 1
+			tiles[tileIndex+6] = (mapChrRead(i) & 0x02) >> 1 | (mapChrRead(i+8) & 0x02)
+			tiles[tileIndex+7] = (mapChrRead(i) & 0x01) | (mapChrRead(i+8) & 0x01) << 1
 
 			tileIndex += 8;
 			i++

@@ -48,11 +48,12 @@
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
 	<script type="text/javascript" src="emulatorscript.php"></script>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+	<img src="nez.png" style="display: none;" class="logo" />
 	<div class="emulator">
 		<canvas class="nes" width="512" height="480"></canvas>
 		<div class="controls">
 			<div title="Open NES ROM file" class="button open">
-				<input class="rom-file" type="file" onchange="loadfile(this)" />
+				<input class="rom-file" type="file" accept=".nes" onchange="loadfile(this)" />
 				<img src="open.svg">
 			</div>
 			<div title="Toggle pause" class="button pause" onclick="togglePause()" style="margin-right: auto">
@@ -82,6 +83,8 @@
 			font-size: 13px;
 			background: inherit;
 			opacity: 0.1;
+			top: -10px;
+			left: -10px;
 		}
 		.rom-file:before {
 			content: '';
@@ -178,7 +181,7 @@
 			font-family: Tahoma;
 			font-size: 12px;
 			background-color: #ccc;
-			background-image: linear-gradient(#cde, #cde, #cde, #abd);
+			background-image: linear-gradient(#cef, #acf, #acf, #7bc);
 			background-attachment: fixed;
 			text-align: center;
 		}
@@ -224,6 +227,37 @@
 			left: calc(50vw - 135px);
 			box-shadow: 0 0 4px rgba(0,0,0,0.5);
 		}
+		
+		h2 {
+			font-size: 2em;
+			border-radius: 10px;
+			background: rgba(255,255,255,0.3);
+			max-width: 700px;
+			margin: 20px auto;
+			display: flex;
+			padding: 5px 15px;
+			color: rgba(0,30,50,0.3);
+		}
+		h2 a {
+			color: inherit;
+			margin-right: 10px;
+			font-size: 1.5em;
+		}
+		h2 a:hover, h2 span:hover {
+			color: rgba(0,30,50,0.5);
+		}
+		h2 span {
+			width: 100%;
+			cursor: pointer;
+			padding-top: 10px;
+			text-align: right;
+		}
+		.text {
+			max-width: 600px;
+			margin: 20px auto;
+			text-align: left;
+			color: rgba(0,0,0,0.5);			
+		}
 	</style>
 	<script type="text/javascript">
 		if (localStorage.volume != undefined) $('[type=range]').val(Math.min(20, parseFloat(localStorage.volume)));
@@ -260,10 +294,17 @@
 			document.body.className = isFullscreen ? 'fullscreen' : '';
 			
 			if (emu && emu.isPlaying()) emu.render(); // Refresh canvas after resize
+			else drawLogo();
 		};
 		window.onresize();
 		
 		$('.nes').on('click', function() { if (!emu.isPlaying()) { $('[type=file]').click(); } });
+		function drawLogo() {
+			var ctx = $('.nes')[0].getContext('2d');
+			ctx.imageSmoothingEnabled = ctx.webkitImageSmoothingEnabled = ctx.mozImageSmoothingEnabled = false;
+			ctx.drawImage($('.logo')[0], 0, 0, 256, 240, 0, 0, ctx.canvas.width, ctx.canvas.height);
+		}
+		$('.logo').on('load', drawLogo);
 		
 		var paused = false;
 		function togglePause() {
@@ -351,5 +392,37 @@
 		void main(void) {
 		}
 	</script>
+	
+	<h2>
+		<a href="https://twitter.com/sumez" target="_blank"><i class="fab fa-twitter-square"></i></a>
+		<a href="https://github.com/sumez/nez" target="_blank"><i class="fab fa-github-square"></i></a>
+		<span onclick="$('.text').show(); $(window).scrollTop(100000)">
+		More about NEZ <i class="fas fa-chevron-circle-down"></i>
+		</span>
+	</h2>
+	<div class="text" style="display: none;">
+	This is an emulator started as a short experiment to test how feasible it even was to pull off such a thing in JavaScript, and quickly improved to support many more games and features than I thought it possibly could, but it is also still evolving.<br />
+	If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href=https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
+	~ Sumez<br />
+	<br />
+	Features currently in the pipline for the future:<br /><br />
+	<strong>Support / accuracy:</strong>
+	<ul>
+		<li>Support for less common mappers (most notably MMC5, VRC6 and MMC2)</li>
+		<li>50hz/PAL support</li>
+		<li>Famicom Disk System support</li>
+		<li>Improve CPU/PPU cycle synchronization</li>
+		<li>All unofficial opcodes</li>
+		<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
+		<li>Save states.... maaybe?</li>
+	</ul>
+	<strong>Technical improvements</strong>
+	<ul>
+		<li>Better performance across all areas (most notably audio/APU emulation)</li>
+		<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
+		<li>Re-implement mappers to actually map addresses, rather than just copying data around</li>
+		<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>
+	</ul>
+	</div>
 </body>
 </html>
