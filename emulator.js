@@ -36,7 +36,7 @@ window.emu = (function() {
 	
 	var hwRegisters = {};
 
-	var cycleCounts = new Float32Array(2);
+	var cycleCounts = new Float32Array(3);
 	
 	var c = false;
 	var n = false;
@@ -215,6 +215,7 @@ include 'mappers.js';
 		
 		pc[0] = vector(RESET);
 
+		currentCycleCount = 0;
 		//setInterval(ppuAdvanceFrame, 1000 / 60);
 		runPc();
 	};
@@ -286,44 +287,29 @@ include 'mappers.js';
 			//if (breakpoints.indexOf(pc[0]) >= 0) debugger;
 			// debug end
 
-			currentCycleCount = 0;
-			var opcode = mapRead[pc[0] & 0xC000 ? 1 : 0](pc[0]);
-			
-			//if (pc[0] == 0 || pc[0] == 0x85DF) debugger;
-			pc[0]++;
-			var func = opcodes[opcode];
-			
-			if (!func) {
-				if (timing) window.cancelAnimationFrame(timing);
-				alert('Unidentified opcode: $' + opcode.toString(16).toUpperCase() + '\nAt $' + (pc[0]-1).toString(16).toUpperCase());
-				console.log(trace);
-				return;
-			}
-			
-			func();
 			if (pendingNmi) {
 				jumpToIrq(NMI);
 				pendingNmi = false;
 			}
 			else if (pendingIrq && !interruptFlag) jumpToIrq(IRQ);
 			
+			//if (pc[0] == 0 || pc[0] == 0x85DF) debugger;
+			var opcode = mapRead[pc[0] & 0xC000 ? 1 : 0](pc[0]);
+			pc[0]++;
+			var runOpcode = opcodes[opcode];
+			
+			if (!runOpcode) {
+				if (timing) window.cancelAnimationFrame(timing);
+				alert('Unidentified opcode: $' + opcode.toString(16).toUpperCase() + '\nAt $' + (pc[0]-1).toString(16).toUpperCase());
+				console.log(trace);
+				return;
+			}
+			
 			if (opcodeCycles[opcode]) currentCycleCount += opcodeCycles[opcode];
 			cycleCounts[0] += currentCycleCount;
 			cycleCounts[1] += currentCycleCount;
-			
-			// Full scanline mode
-//			if (cycleCounts[1] > 113.6666) {
-//				cycleCounts[1] -= 113.6666;
-//				ppuScanline();
-//			}
-			if (cycleCountEnabled && cycleCounter[0] > 0) {
-				var newCount = cycleCounter[0] - currentCycleCount;
-				if (newCount <= 0) {
-					newCount == 0;
-					if (cycleIrqEnabled) pendingIrq = true;
-				}
-				cycleCounter[0] = newCount;
-			}
+			cycleCounts[2] += currentCycleCount;
+			currentCycleCount = 0;
 			while (cycleCounts[1] > 0) {
 				cycleCounts[1]--;
 				ppuPixel();
@@ -334,6 +320,40 @@ include 'mappers.js';
 				cycleCounts[0] -= 2
 				apu.tick(1);
 			}
+			
+			runOpcode();
+			
+			//if (opcodeCycles[opcode]) currentCycleCount += opcodeCycles[opcode];
+			cycleCounts[0] += currentCycleCount;
+			cycleCounts[1] += currentCycleCount;
+			cycleCounts[2] += currentCycleCount;
+			currentCycleCount = 0;
+			
+			// Full scanline mode
+//			if (cycleCounts[1] > 113.6666) {
+//				cycleCounts[1] -= 113.6666;
+//				ppuScanline();
+//			}
+			if (cycleCountEnabled && cycleCounter[0] > 0) {
+				var newCount = cycleCounter[0] - cycleCounts[2];
+				if (newCount <= 0) {
+					newCount == 0;
+					if (cycleIrqEnabled) pendingIrq = true;
+				}
+				cycleCounter[0] = newCount;
+			}
+			cycleCounts[2] = 0;
+			/*
+			while (cycleCounts[1] > 0) {
+				cycleCounts[1]--;
+				ppuPixel();
+				ppuPixel();
+				ppuPixel();
+			}
+			while (cycleCounts[0] > 1) {
+				cycleCounts[0] -= 2
+				apu.tick(1);
+			}*/
 			
 //			if (cycleCounts[0] > 29781) { // Frame timing
 //				cycleCounts[0] -= 29781;

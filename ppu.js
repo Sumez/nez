@@ -329,12 +329,13 @@ function ppuDataWrite(value) {
 	setWriteAddress(writeAddress[0] + (vertical ? 32 : 1));
 }
 function setWriteAddress(value) {
-	writeAddress[0] = value & 0x3FFF;
+	writeAddress[0] = value;
 	// Simulates the register "conflicts" when writing to PPUADDR mid-frame
 	// TODO: Would probably be a lot better to just replicate the W and T registers directly
 	currentY = ((writeAddress[0] >> 2) & 0xF8) | (writeAddressBytes[1] >> 4);
 	currentNtIndex = (writeAddressBytes[1] >> 2) & 3;
 	globalBgColor = 0;
+	writeAddress[0] &= 0x3FFF;
 	if (writeAddress[0] >= 0x3F00) globalBgColor = writeAddress[0] & 31;
 }
 

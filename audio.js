@@ -61,7 +61,7 @@ var NewApu = (function() {
 		mixer.connect(compressor);
 
 		clockStep = 1789773 / 2 / audio.sampleRate; // NES clock frequency / 2 = APU sample rate
-
+clockStep *= 0.97;
 		//mixer.onaudioprocess = clockToOutput;
 		mixer.onaudioprocess = resample;
 
@@ -130,26 +130,30 @@ var NewApu = (function() {
 	}
 	
 	// More accurate, but doesn't match output rate due to emulation, so will course clicks and/or lag
-	var buffer = new Int8Array(bufferSize * 10);
+	var buffer = new Float32Array(bufferSize * 10);
 	var bufferPointer = 100;
 	var readPointer = 0;
 	var bufferLength = 0;
 	var bufferStep;
 	function resample(e) {
 		if (!running) return;
-		if (bufferLength < 400) return; // extreme underflow, in case of performance issues or the tab went into the background, we just want to skip this update
-		
+		if (bufferLength < 400) {
+			//console.log('buffer underrun');
+			return; // extreme underflow, in case of performance issues or the tab went into the background, we just want to skip this update
+		}
 		var output = e.outputBuffer.getChannelData(0);
 		var l = Math.min(bufferLength, output.length);
 		for (var i = 0; i < l; i++) {
-			output[i] = Math.tanh(buffer[readPointer] / (15*3));
+			//output[i] = Math.tanh(buffer[readPointer] / (15*3));
+			output[i] = buffer[readPointer];
 			readPointer++;
 			if (readPointer == buffer.length) readPointer = 0;
 		}
 		l = output.length;
 		for (var i = bufferLength; i < l; i++) {
 			asyncTick(clockStep);
-			output[i] = Math.tanh(sample / (15*3)); // 15 = sequencer "full" volume
+			//output[i] = Math.tanh(sample / (15*3)); // 15 = sequencer "full" volume
+			output[i] = sample;
 		}
 		bufferLength = Math.max(0, bufferLength - output.length);
 
@@ -242,7 +246,7 @@ var NewApu = (function() {
 				}
 			}
 			channel.sample = channel.load;
-			channel.sample >>= 2;
+			//channel.sample >>= 2;
 		}
 	}
 	
@@ -277,7 +281,9 @@ var NewApu = (function() {
 		updateNoise(nnoise, noise);
 		updateDmc(dmc);
 		
-		sample = (npulse1.sample + npulse2.sample + ntriangle.sample + nnoise.sample + dmc.sample);
+		var mixPulse = 95.88 / ((8128 / (npulse1.sample + npulse2.sample)) + 100);
+		var mixTnd = 159.79 / (1 / ((ntriangle.sample / 8227) + (nnoise.sample / 12241) + (dmc.sample / 22638)) + 100);
+		sample = mixPulse + mixTnd;
 		//sample = (npulse1.sample + npulse2.sample);
 	}
 	function tick(amount) {

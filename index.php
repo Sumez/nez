@@ -417,10 +417,12 @@
 	<strong>Support / accuracy:</strong>
 	<ul>
 		<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
+		<li>Controller support</li>
 		<li>50hz/PAL support</li>
 		<li>Famicom Disk System support</li>
 		<li>Improve CPU/PPU cycle synchronization</li>
 		<li>All unofficial opcodes</li>
+		<li>CRT style shaders</li>
 		<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
 		<li>Save states.... maaybe?</li>
 	</ul>
