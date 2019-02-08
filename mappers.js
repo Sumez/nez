@@ -440,6 +440,7 @@ function initChrBanks(size, isRam, banks) {
 		var mmc5Ram = new Uint8Array(0x40000);
 		var fillNametable = new Uint8Array(0x400);
 		var fillNametableAttributes = new Uint8Array(fillNametable.buffer, 0x3C0, 0x40);
+		bgChrMemory = new Uint8Array(0x2000); // ghetto banking for performance reasons
 		
 		var prgMode = 0, chrMode = 0;
 		var prgIndex = new Uint8Array(5);
@@ -613,6 +614,14 @@ PRG RAM mode: (needs to be extended to take extended RAM into consideration, or 
 					bgChrBanks[7] = bgChrIndex[3];
 					break;
 			}
+			bgChrMemory.set(chrData.subarray(bgChrBanks[0]*0x400, (bgChrBanks[0]+1)*0x400), 0x0000);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[1]*0x400, (bgChrBanks[1]+1)*0x400), 0x0400);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[2]*0x400, (bgChrBanks[2]+1)*0x400), 0x0800);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[3]*0x400, (bgChrBanks[3]+1)*0x400), 0x0C00);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[4]*0x400, (bgChrBanks[4]+1)*0x400), 0x1000);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[5]*0x400, (bgChrBanks[5]+1)*0x400), 0x1400);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[6]*0x400, (bgChrBanks[6]+1)*0x400), 0x1800);
+			bgChrMemory.set(chrData.subarray(bgChrBanks[7]*0x400, (bgChrBanks[7]+1)*0x400), 0x1C00);
 		}
 		function setNametable(nti, mapping) {
 			switch (mapping) {

@@ -68,7 +68,7 @@
 				<img class="pause-state" src="pause.svg">
 			</div>
 			<i class="fas fa-volume-off"></i>
-			<input type="range" min="0" max="20" value="15" oninput="emu.volume(this.value / 100); localStorage.volume = this.value; this.focus()">
+			<input type="range" min="0" max="100" value="50" oninput="emu.volume(this.value / 100); localStorage.volume = this.value; this.focus()">
 			<div title="Enable SNES mouse" class="button" onclick="emu.useMouse()">
 				<img src="mouse.svg">
 			</div>
@@ -268,7 +268,7 @@
 		}
 	</style>
 	<script type="text/javascript">
-		if (localStorage.volume != undefined) $('[type=range]').val(Math.min(20, parseFloat(localStorage.volume)));
+		if (localStorage.volume != undefined) $('[type=range]').val(Math.min(100, parseFloat(localStorage.volume)));
 		
 		window.onresize = function() {
 			
@@ -417,7 +417,9 @@
 	<strong>Support / accuracy:</strong>
 	<ul>
 		<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
+		<li>Support for homebrew mapper 30 (UNROM 512)</li>
 		<li>Controller support</li>
+		<li>Improve mouse support</li>
 		<li>50hz/PAL support</li>
 		<li>Famicom Disk System support</li>
 		<li>Improve CPU/PPU cycle synchronization</li>
@@ -428,7 +430,7 @@
 	</ul>
 	<strong>Technical improvements</strong>
 	<ul>
-		<li>Better performance across all areas (most notably audio/APU emulation)</li>
+		<li>Better performance across all areas (most notably PPU emulation)</li>
 		<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
 		<li><s>Re-implement mappers to actually map addresses, rather than just copying data around</s> find a new way to do this without a huge performance overhead</li>
 		<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>

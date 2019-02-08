@@ -27,6 +27,7 @@ window.emu = (function() {
 		new Uint8Array(ppuMemoryBuffer, 0x2FC0, 0x40)
 	];
 	var ppuPalettes = new Uint8Array(ppuMemoryBuffer, 0x3F00, 0x20);
+	var bgChrMemory = new Uint8Array(ppuMemoryBuffer, 0, 0x2000);
 		
 	var cpuBuffer = new ArrayBuffer(10);
 	var cpuRegisters = new Uint8Array(cpuBuffer, 0, 4);

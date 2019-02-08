@@ -40,7 +40,7 @@ var NewApu = (function() {
 
 	var pulseCycles = [[0,1,0,0,0,0,0,0],[0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0],[1,0,0,1,1,1,1,1]];
 	var triangleCycle = [15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15];
-	var bufferSize = 512;
+	var bufferSize = 1024;
 
 	var mixer;
 	var wave, ctx;
@@ -49,16 +49,16 @@ var NewApu = (function() {
 		if (audio || !enableAudioEmulation) return;
 		
 		audio = new AudioContext();
-		var compressor = audio.createDynamicsCompressor();
+		//var compressor = audio.createDynamicsCompressor();
 		masterVolume = audio.createGain();
 		masterVolume.gain.setValueAtTime(masterVolumeValue, audio.currentTime);
 		mixer = audio.createScriptProcessor(bufferSize, 0, 1);
 
 		masterVolume.connect(audio.destination);
-		compressor.connect(masterVolume);
+		//compressor.connect(masterVolume);
 		//mixer.connect(masterVolume);
 		//mixer.connect(audio.destination);
-		mixer.connect(compressor);
+		mixer.connect(masterVolume);
 
 		clockStep = 1789773 / 2 / audio.sampleRate; // NES clock frequency / 2 = APU sample rate
 clockStep *= 0.97;
