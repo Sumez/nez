@@ -1,4 +1,17 @@
 
+function mapNrom(chunks) {
+	for (var i = 0x40; i < 0x80; i++) {
+		cpuRead[i] = openBusSource;
+	}
+	for (var i = 0x80; i < 0xC0; i++) {
+		cpuRead[i] = prgData.subarray((i & 0x3F) << 8, (i & 0x3F) + 1 << 8);
+	}
+	var lBank = (prgData.byteLength - 0x4000) >> 8;
+	for (var i = 0xC0; i < 0x100; i++) {
+		cpuRead[i] = prgData.subarray(lBank + ((i & 0x3F) << 8), lBank + ((i & 0x3F) + 1 << 8));
+	}
+}
+
 var singleScreen = false;
 var prgBanks, chrBanks;
 var prgRam = new Uint8Array(0x2000);

@@ -2,10 +2,10 @@
 const illegalOpcodes = true;
 
 function addrRead(address) {
-	return mapRead[address & 0xC000 ? 1 : 0](address);
+	return cpuRead[address >> 8][address & 0xFF];
 }
 function addrWrite(address, value) {
-	return mapWrite[address & 0xC000 ? 1 : 0](address, value);
+	cpuRead[address >> 8][address & 0xFF] = value;
 }
 
 
@@ -512,12 +512,14 @@ window.testOp = function() {
 		return cpuMemory[zp & 0xff] + (cpuMemory[(zp+1) & 0xff] << 8);
 	}
 	function param16() {
-		var val = addrRead(pc[0]) + (addrRead(pc[0]+1) << 8);
-		pc[0] += 2;
+		var val = cpuRead[pcByte[1]][pcByte[0]];
+		pc[0] += 1;
+		val |= cpuRead[pcByte[1]][pcByte[0]] << 8
+		pc[0] += 1;
 		return val;
 	}
 	function param8() {
-		var val = addrRead(pc[0]);
+		var val = cpuRead[pcByte[1]][pcByte[0]];
 		pc[0]++;
 		return val;
 	}
@@ -598,7 +600,7 @@ window.testOp = function() {
 	
 	if (illegalOpcodes) {
 		
-		opcodes[BRK] = function() { pc[0]++; irq(IRQ); }; // not really illegal, but catching it helps with debugging :)
+		opcodes[BRK] = function() { pc[0]++; pendingIrq = true; }; // not really illegal, but catching it helps with debugging :)
 
 		opcodes[LAXzp] = function() { cpuRegisters[X] = loadValue(readValue(param8(), -1, true), A); };
 		opcodes[LAXzpY] = function() { cpuRegisters[X] = loadValue(readValue(param8(), Y, true), A); };

@@ -48,8 +48,7 @@ window.emu = (function() {
 	var loaded = false;
 	var mappers = [];
 	
-	var mapRead = [];
-	var mapWrite = [];
+	var cpuRead = new Array(0x10000 / 0x100); // maps CPU memory into 256 x 256-byte chunks (pages)
 	var mapChrRead, mapChrWrite;
 
 <?php
@@ -67,19 +66,22 @@ include 'mappers.js';
 	var chrRam = false;
 	var saveRam = false;
 	var gameId;
+	
 	function LoadNRom(data, prgChunks, chrChunks) {
 
 		cpuMemory.fill(0);
 		ppuMemory.fill(0);
 	
 		prgData = data.subarray(0, prgChunks * 0x4000);
-		if (prgChunks >= 2) {
+		
+		mapNrom(prgChunks);
+		/*if (prgChunks >= 2) {
 			cpuMemory.set(prgData.subarray(-0x8000), 0x8000);
 		}
 		if (prgChunks == 1) {
 			cpuMemory.set(prgData, 0x8000);
 			cpuMemory.set(prgData, 0xC000);
-		}
+		}*/
 		if (chrChunks) {
 			chrRam = false;
 			chrData = data.subarray(-0x2000 * chrChunks);
@@ -91,6 +93,15 @@ include 'mappers.js';
 		ppuMemory.set(chrData.subarray(0, 0x2000), 0);
 		loaded = true;
 	}
+	var openBusSource = new Uint8Array(0); // Always returns undefined
+	
+	for (var i = 0; i < 0x20; i++) {
+		// Maps 0x0000-0x2000 to 0x0000-0x07FF mirrored four times
+		cpuRead[i] = new Uint8Array(cpuMemoryBuffer, (i & 7) << 8, 0x100);
+	}
+	for (var i = 0x20; i < 0x40; i++) {
+		cpuRead[i] = openBusSource;
+	}
 	
 	var openBus = 0; // TODO!
 	function readCpu(address) {
@@ -99,17 +110,13 @@ include 'mappers.js';
 		return openBus;
 	}
 	function writeCpu(address, value) {
-		if (!(address & 0xE000)) cpuMemory[address & 0x07FF] = value;
-	}
-	function readCart(address) {
-		return cpuMemory[address]; // Dummy function for NROM, etc.
-		// TODO: openBus below 0x8000 unless mapper allows it
+		if (!(address & 0xE000)) cpuRead[address >> 8][address & 0xFF] = value;
 	}
 	function writeCart(address, value) {
 		cpuMemory[address] = value;
 	}
 	function vector(index) {
-		return mapRead[1](0xfffa + (index * 2)) | (mapRead[1](0xfffa + 1 + (index * 2)) << 8);
+		return cpuRead[0xFF][0xFA + (index * 2)] | (cpuRead[0xFF][0xFA + 1 + (index * 2)] << 8);
 	}
 	function readChr(address) {
 		return ppuMemory[address];
@@ -117,6 +124,7 @@ include 'mappers.js';
 	function writeChr(address, value) {
 		if (chrRam) ppuMemory[address] = value;
 	}
+	
 	
 	
 	
@@ -140,10 +148,6 @@ include 'mappers.js';
 		var mapperId = (header[6] & 0xf0) >> 4;
 		mapperId |= header[7] & 0xf0;
 		
-		mapRead[0] = readCpu;
-		mapRead[1] = readCart;
-		mapWrite[0] = writeCpu;
-		mapWrite[1] = writeCart;
 		mapChrRead = readChr;
 		mapChrWrite = writeChr;
 		
@@ -282,8 +286,8 @@ include 'mappers.js';
 			//var debug4 = scanline;
 			//var debug5 = pixelOnScanline;
 			//var debug6 = currentY;
-			//trace.push(pc[0].toString(16).toUpperCase());
-			//if (trace.length > 1000) trace = trace.slice(-200);
+			trace.push(pc[0].toString(16).toUpperCase());
+			if (trace.length > 1000) trace = trace.slice(-200);
 			
 			//if (breakpoints.indexOf(pc[0]) >= 0) debugger;
 			// debug end
@@ -295,7 +299,7 @@ include 'mappers.js';
 			else if (pendingIrq && !interruptFlag) jumpToIrq(IRQ);
 			
 			//if (pc[0] == 0 || pc[0] == 0x85DF) debugger;
-			var opcode = mapRead[pc[0] & 0xC000 ? 1 : 0](pc[0]);
+			var opcode = cpuRead[pcByte[1]][pcByte[0]];
 			pc[0]++;
 			var runOpcode = opcodes[opcode];
 			
