@@ -232,6 +232,51 @@ function initChrBanks(size, isRam, banks) {
 			hwRegisters[i] = prgb;
 		}
 	};
+	
+	// MMC2
+	var mapperListener = null;
+	mappers[9] = function() {
+		cpuMemory.set(prgData.subarray(-0x6000), 0xA000);
+		
+		var L0 = false, L1 = false;
+		var chr00 = 0, chr01 = 0, chr10 = 0, chr11 = 0;
+		
+		mapperListener = [];
+		mapperListener[0x0FD8] = function() { L0 = false; setChr(); };
+		mapperListener[0x0FE8] = function() { L0 = true; setChr(); };
+		for (var i = 0; i < 8; i++) {
+			mapperListener[0x1FD8 + i] = function() { L1 = false; setChr(); };
+			mapperListener[0x1FE8 + i] = function() { L1 = true; setChr(); };
+		}
+		
+		function setChr() {
+			var chr0 = L0 ? chr01 : chr00;
+			var chr1 = L1 ? chr11 : chr10;
+			ppuMemory.set(chrData.subarray(chr0*0x1000, (chr0+1)*0x1000), 0);
+			ppuMemory.set(chrData.subarray(chr1*0x1000, (chr1+1)*0x1000), 0x1000);
+		}
+
+		var prgSelect = new HwRegister(null, function(value) {
+			var prgIndex = value & 0x0F;
+			cpuMemory.set(prgData.subarray(prgIndex*0x2000, (prgIndex+1)*0x2000), 0x8000);
+		});
+		var mirroring = new HwRegister(null, function(value) {
+			vMirroring = (value & 1) == 0;
+			setMirroring();
+		});
+		
+		var chr00Select = new HwRegister(null, function(value) { chr00 = value & 0x1F; setChr(); });
+		var chr01Select = new HwRegister(null, function(value) { chr01 = value & 0x1F; setChr(); });
+		var chr10Select = new HwRegister(null, function(value) { chr10 = value & 0x1F; setChr(); });
+		var chr11Select = new HwRegister(null, function(value) { chr11 = value & 0x1F; setChr(); });
+		for (var i = 0xA000; i < 0xB000; i++) hwRegisters[i] = prgSelect;
+		for (var i = 0xB000; i < 0xC000; i++) hwRegisters[i] = chr00Select;
+		for (var i = 0xC000; i < 0xD000; i++) hwRegisters[i] = chr01Select;
+		for (var i = 0xD000; i < 0xE000; i++) hwRegisters[i] = chr10Select;
+		for (var i = 0xE000; i < 0xF000; i++) hwRegisters[i] = chr11Select;
+		for (var i = 0xF000; i < 0x10000; i++) hwRegisters[i] = mirroring;
+
+	}
 
 	// MMC3 and MMC6
 	mappers[68] = mappers[4] = function() {

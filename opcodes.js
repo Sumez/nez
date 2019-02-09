@@ -488,7 +488,6 @@ window.testOp = function() {
 	}
 	function storeValue(registerOffset, address, offsetByRegister, isZP) {
 		if (offsetByRegister >= 0) {
-			// TODO: ZP wrap-around
 			var addr2 = (address + cpuRegisters[offsetByRegister]) & (isZP ? 0xff : 0xffff);
 			if (registerOffset > 0 && ((address & 0xFF00) != (addr2 & 0xFF00))) currentCycleCount++;
 			address = addr2;
@@ -498,6 +497,17 @@ window.testOp = function() {
 		}
 		else {
 			addrWrite(address, cpuRegisters[registerOffset]);
+		}
+	}
+	function storeValueDirect(value, address, offsetByRegister, isZP) {
+		if (offsetByRegister >= 0) {
+			var address = (address + cpuRegisters[offsetByRegister]) & (isZP ? 0xff : 0xffff);
+		}
+		if (hwRegisters[address]) {
+			if (hwRegisters[address].store) hwRegisters[address].store(value, address);
+		}
+		else {
+			addrWrite(address, value);
 		}
 	}
 	function indirectY(free) {
@@ -595,6 +605,25 @@ window.testOp = function() {
 	const SAX = 0xCB;
 	const ALR = 0x4B;
 	const ARR = 0x6B;
+	const AXSa = 0x8F;
+	const AXSzp = 0x87;
+	const AXSzpY = 0x97;
+	const AXSiX = 0x83;
+	const ANC2 = 0x2B;
+	const ANC1 = 0x0B;
+	
+	const INSa = 0xEF;
+	const INSaX = 0xFF;
+	const INSaY = 0xFB;
+	const INSzp = 0xE7;
+	const INSzpX = 0xF7;
+	const INSiX = 0xE3;
+	const INSiY = 0xF3;
+
+	var nop1 = [0x1A,0x3A,0x5A,0x7A,0xDA,0xFA];
+	var nop2 = [0x80,0x82,0xC2,0xE2,0x04,0x14,0x34,0x44,0x54,0x64,0x74,0xD4,0xF4];
+	var nop3 = [0x0C,0x1C,0x3C,0x5C,0x7C,0xDC,0xFC];
+	
 	
 	if (illegalOpcodes) {
 		
@@ -611,9 +640,29 @@ window.testOp = function() {
 			cpuRegisters[X] &= cpuRegisters[A];
 			cpuRegisters[X] = adc(X, 255 - param8(), true, true);
 		};
+		opcodes[AXSa] = function() { storeValueDirect(cpuRegisters[X] & cpuRegisters[A], param16()); };
+		opcodes[AXSzp] = function() { storeValueDirect(cpuRegisters[X] & cpuRegisters[A], param8(), -1, true); };
+		opcodes[AXSzpY] = function() { storeValueDirect(cpuRegisters[X] & cpuRegisters[A], param8(), Y, true); };
+		opcodes[AXSiX] = function() { storeValueDirect(cpuRegisters[X] & cpuRegisters[A], indirectX(), -1); };
 		
 		opcodes[ALR] = function() { cpuRegisters[A] = lsr(cpuRegisters[A] & param8()); };
 		opcodes[ARR] = function() { cpuRegisters[A] = lsr(cpuRegisters[A] & param8(), C); };
+		
+		opcodes[ANC1] = opcodes[ANC2] = function() { loadValue(param8() & cpuRegisters[A], A); c = n; };
+
+		opcodes[INSa] = function() { var addr = param16(); inc(1, addr, -1); cpuRegisters[A] = adc(A, 255 - readValue(addr, -1), c); }
+		// 0xFF: opcodes[INSaX] = function() { var addr = param16(); inc(1, addr, X); cpuRegisters[A] = adc(A, 255 - readValue(addr, X), c); }
+		opcodes[INSaY] = function() { var addr = param16(); inc(1, addr, Y); cpuRegisters[A] = adc(A, 255 - readValue(addr, Y), c); }
+		opcodes[INSzp] = function() { var addr = param8(); inc(1, addr, -1, true); cpuRegisters[A] = adc(A, 255 - readValue(addr, -1, true), c); }
+		opcodes[INSzpX] = function() { var addr = param8(); inc(1, addr, X, true); cpuRegisters[A] = adc(A, 255 - readValue(addr, X, true), c); }
+		opcodes[INSiX] = function() { var addr = indirectX(); inc(1, addr, -1); cpuRegisters[A] = adc(A, 255 - readValue(addr, -1), c); }
+		opcodes[INSiY] = function() { var addr = indirectY(); inc(1, addr, -1); cpuRegisters[A] = adc(A, 255 - readValue(addr, -1), c); }
+
+		
+		for (var i = 0; i < nop1.length; i++) opcodes[nop1[i]] = function() { };
+		for (var i = 0; i < nop1.length; i++) opcodes[nop2[i]] = function() { pc[0]++; };
+		for (var i = 0; i < nop3.length; i++) opcodes[nop3[i]] = function() { pc[0] += 2; };
+
 	}
 	
 	

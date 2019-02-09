@@ -96,17 +96,19 @@ function ppuScanline() {
 		sbi += 5;
 		scanlineSpriteBuffer[sbi] = i; // reference
 		scanlineSpriteBuffer[sbi+1] = oamMemory[i + 3]; // X
-		scanlineSpriteBuffer[sbi+2] = yOffset >> 8;// << 3;
-		scanlineSpriteBuffer[sbi+3] = yOffset;// << 3;
+		scanlineSpriteBuffer[sbi+2] = ppuMemory[spriteChrIndex | yOffset];// << 3;
+		scanlineSpriteBuffer[sbi+3] = ppuMemory[spriteChrIndex | yOffset + 8];// << 3;
 		scanlineSpriteBuffer[sbi+4] = 0;
 		if (sbi == 35) break; // 8 sprite limit
+		
+		if (mapperListener) {
+			var map2 = mapperListener[spriteChrIndex | yOffset + 8];
+			if (map2) map2();
+		}
 	}
 
 	pixelOnScanline = 0;
 	currentNtIndex = (currentNtIndex & 2) | (ntIndex & 1); // Set horizontal nametable index at the beginning of scanline
-	
-	//for (var i = 0; i < 256; i++) ppuPixel(); // Full scanline mode
-		
 
 }
 
@@ -119,6 +121,21 @@ function ppuPixel() {
 	
 	if (pixelOnScanline > 255) {
 		if (pixelOnScanline == 256) {
+			
+			if (mapperListener) {
+				// Special hotfix for Punch-Out until the BG buffering routine is made more accurate
+				var ntRef = nametables[currentNtIndex];
+				var x = pixelOnScanline + xScroll + 8;
+				if (x & 0x100) {
+					x &= 0xFF;
+					ntRef = nametables[currentNtIndex^1];
+				}
+				var tileIndex = ((currentY & 0xF8) << 2) | (x >> 3);
+				var tileOffset = bgChrIndex | (ntRef[tileIndex] << 4) | (currentY & 7);
+				var map2 = mapperListener[tileOffset + 8];
+				if (map2) map2();
+			}
+			
 			globalBgColor = 0;
 			currentY++;
 			if (currentY == 256) currentY = 0;
@@ -158,9 +175,6 @@ if (scanline == 261 && pixelOnScanline == 301) {
 		pixelOnScanline++;
 		return;
 	}
-
-	bgChrIndex = bgOnChr1000 ? 0x1000 : 0;
-	spriteChrIndex = (spritesOnChr1000 && !tallSprites) ? 0x1000 : 0;
 	
 	var bgOnTop = false;
 	var color = 0;
@@ -174,7 +188,7 @@ if (scanline == 261 && pixelOnScanline == 301) {
 			if (tileX == 8) continue;
 			var attribute = oamMemory[scanlineSpriteBuffer[i] + 2];
 			if (attribute & 0x40) tileX = 7 - tileX; // flipX
-			var spriteColor = getChrColor(spriteChrIndex | (scanlineSpriteBuffer[i+2] << 8) | scanlineSpriteBuffer[i+3], tileX);
+			var spriteColor = getChrColor(scanlineSpriteBuffer[i+2], scanlineSpriteBuffer[i+3], tileX);
 			if (spriteColor) {
 				color = spriteColor;
 				palette = 4 | (attribute & 3);
@@ -209,11 +223,16 @@ if (scanline == 261 && pixelOnScanline == 301) {
 		ntBuffer[1] &= 3;
 		ntBuffer[2] = bgChrMemory[tileOffset];
 		ntBuffer[3] = bgChrMemory[tileOffset+8];
+		
+		if (mapperListener) {
+			var map2 = mapperListener[tileOffset + 8];
+			if (map2) map2();
+		}
 	}
 	ntBufferCount = (ntBufferCount + 1) & 7;
 	
 	if (showBG && (pixelOnScanline > 7 || !maskBG)) {
-		var bgColor = getBgChrColor(tileX);
+		var bgColor = getChrColor(ntBuffer[2], ntBuffer[3], tileX);
 		if (bgColor && potentialHit) sprite0hit = true;
 		if (!color || bgColor && bgOnTop) {
 			color = bgColor;
@@ -243,44 +262,24 @@ if (scanline == 261 && pixelOnScanline == 301) {
 	pixelOnFrame++;
 	pixelOnScanline++;
 }
-function getChrColor(tileOffset, tileX) {
+function getChrColor(byte1, byte2, tileX) {
 	switch (tileX) {
 		case 0:
-			return ((ppuMemory[tileOffset] >> 7) & 0x01) | ((ppuMemory[tileOffset+8] >> 6) & 0x02);
+			return ((byte1 >> 7) & 0x01) | ((byte2 >> 6) & 0x02);
 		case 1:
-			return ((ppuMemory[tileOffset] >> 6) & 0x01) | ((ppuMemory[tileOffset+8] >> 5) & 0x02);
+			return ((byte1 >> 6) & 0x01) | ((byte2 >> 5) & 0x02);
 		case 2:
-			return ((ppuMemory[tileOffset] >> 5) & 0x01) | ((ppuMemory[tileOffset+8] >> 4) & 0x02);
+			return ((byte1 >> 5) & 0x01) | ((byte2 >> 4) & 0x02);
 		case 3:
-			return ((ppuMemory[tileOffset] >> 4) & 0x01) | ((ppuMemory[tileOffset+8] >> 3) & 0x02);
+			return ((byte1 >> 4) & 0x01) | ((byte2 >> 3) & 0x02);
 		case 4:
-			return ((ppuMemory[tileOffset] >> 3) & 0x01) | ((ppuMemory[tileOffset+8] >> 2) & 0x02);
+			return ((byte1 >> 3) & 0x01) | ((byte2 >> 2) & 0x02);
 		case 5:
-			return ((ppuMemory[tileOffset] >> 2) & 0x01) | ((ppuMemory[tileOffset+8] >> 1) & 0x02);
+			return ((byte1 >> 2) & 0x01) | ((byte2 >> 1) & 0x02);
 		case 6:
-			return ((ppuMemory[tileOffset] >> 1) & 0x01) | ((ppuMemory[tileOffset+8]) & 0x02);
+			return ((byte1 >> 1) & 0x01) | ((byte2) & 0x02);
 		case 7:
-			return ((ppuMemory[tileOffset]) & 0x01) | ((ppuMemory[tileOffset+8] << 1) & 0x02);
-	}
-}
-function getBgChrColor(tileX) {
-	switch (tileX) {
-		case 0:
-			return ((ntBuffer[2] >> 7) & 0x01) | ((ntBuffer[3] >> 6) & 0x02);
-		case 1:
-			return ((ntBuffer[2] >> 6) & 0x01) | ((ntBuffer[3] >> 5) & 0x02);
-		case 2:
-			return ((ntBuffer[2] >> 5) & 0x01) | ((ntBuffer[3] >> 4) & 0x02);
-		case 3:
-			return ((ntBuffer[2] >> 4) & 0x01) | ((ntBuffer[3] >> 3) & 0x02);
-		case 4:
-			return ((ntBuffer[2] >> 3) & 0x01) | ((ntBuffer[3] >> 2) & 0x02);
-		case 5:
-			return ((ntBuffer[2] >> 2) & 0x01) | ((ntBuffer[3] >> 1) & 0x02);
-		case 6:
-			return ((ntBuffer[2] >> 1) & 0x01) | ((ntBuffer[3]) & 0x02);
-		case 7:
-			return ((ntBuffer[2]) & 0x01) | ((ntBuffer[3] << 1) & 0x02);
+			return ((byte1) & 0x01) | ((byte2 << 1) & 0x02);
 	}
 }
 function ppuIsVblank() {
@@ -308,6 +307,9 @@ function ppuCtrl(value) {
 	tallSprites = (value & 32) != 0;
 	//TODO: ??? = (value & 64) != 0;
 	enableNmi = (value & 128) != 0;
+	
+	bgChrIndex = bgOnChr1000 ? 0x1000 : 0;
+	spriteChrIndex = (spritesOnChr1000 && !tallSprites) ? 0x1000 : 0;
 }
 function ppuMask(value) {
 	lastWrite = value;
