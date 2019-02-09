@@ -68,12 +68,15 @@
 				<img class="pause-state" src="pause.svg">
 			</div>
 			<i class="fas fa-volume-off"></i>
-			<input type="range" min="0" max="100" value="50" oninput="emu.volume(this.value / 100); localStorage.volume = this.value; this.focus()">
+			<input type="range" min="0" max="100" value="50" oninput="emu.volume(this.value / 100); config.volume = this.value; save(); this.focus()">
 			<div title="Enable SNES mouse" class="button" onclick="emu.useMouse()">
 				<img src="mouse.svg">
 			</div>
 			<div title="Configure controller buttons" class="button controller" onclick="emu.buttonConfig()">
 				<img src="controller.svg">
+			</div>
+			<div title="Toggle TV shader (might be slow)" class="button shader" onclick="toggleShader()">
+				<img src="tv.svg">
 			</div>
 			<div title="Full screen" class="button" onclick="fullscreen()">
 				<img src="fullscreen.svg">
@@ -135,6 +138,9 @@
 			cursor: pointer;
 			position: relative;
 			height: 1.5em;
+		}
+		.controls [type=button].enabled, .controls .button.enabled {
+			background: #333333;
 		}
 		.controls .button img {
 			width: 1em;
@@ -268,7 +274,17 @@
 		}
 	</style>
 	<script type="text/javascript">
-		if (localStorage.volume != undefined) $('[type=range]').val(Math.min(100, parseFloat(localStorage.volume)));
+		var config = {};
+		if (localStorage.config) {
+			config = JSON.parse(localStorage.config);
+			
+			if (config.shaderEnabled) toggleShader(true);
+			if (config.volume) $('[type=range]').val(Math.min(100, config.volume));
+		}
+		
+		function save() {
+			localStorage.config = JSON.stringify(config);
+		}
 		
 		window.onresize = function() {
 			
@@ -327,17 +343,29 @@
 			}
 			paused = !paused;
 		}
+		
+		var shaderEnabled = false;
+		function toggleShader(value) {
+			if (value != undefined) config.shaderEnabled = value;
+			else config.shaderEnabled = !config.shaderEnabled;
+			if (config.shaderEnabled) {
+				emu.enableShader('crt.glsl');
+			}
+			else {
+				emu.disableShader();
+			}
+			$('.button.shader').toggleClass('enabled', config.shaderEnabled);
+			save();
+		}
 	</script>
-		<script id="vertex" type="x-shader/x-vertex">
+	<script id="vertex" type="x-shader/x-vertex">
 		attribute vec2 aVertexPosition;
 		attribute vec2 aTextureCoord;
-		attribute float aPaletteIndex;
 
 		uniform vec2 u_translation;
 		uniform vec2 u_resolution;
 
 		varying highp vec2 vTextureCoord;
-		varying lowp float vColorIndex;
 
 		void main(void) {
 			vec2 cBase = u_resolution / vec2(2, 2);
@@ -345,62 +373,16 @@
 				((aVertexPosition) + u_translation - cBase) / cBase
 			, 0, 1.0) * vec4(1, -1, 1, 1);
 			vTextureCoord = aTextureCoord;
-			
-			vColorIndex = aPaletteIndex;
 		}
 	</script>
 
 	<script id="textureFragment" type="x-shader/x-fragment">
 		varying highp vec2 vTextureCoord;
-
-		varying lowp float vColorIndex;
-		
-		uniform lowp vec4 uColor[12];
-
 		uniform sampler2D uSampler;
-		uniform lowp vec4 uTint;
-		uniform bool uApplyPalette;
-
 		void main(void) {
-			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) * uTint;
-			if (uApplyPalette) {
-				if (gl_FragColor.r == 1.0) {
-					if (vColorIndex == 0.0) gl_FragColor = uColor[0] / 255.0;
-					if (vColorIndex == 1.0) gl_FragColor = uColor[3] / 255.0;
-					if (vColorIndex == 2.0) gl_FragColor = uColor[6] / 255.0;
-					if (vColorIndex == 3.0) gl_FragColor = uColor[9] / 255.0;
-				}
-				else if (gl_FragColor.g == 1.0) {
-					if (vColorIndex == 0.0) gl_FragColor = uColor[1] / 255.0;
-					if (vColorIndex == 1.0) gl_FragColor = uColor[4] / 255.0;
-					if (vColorIndex == 2.0) gl_FragColor = uColor[7] / 255.0;
-					if (vColorIndex == 3.0) gl_FragColor = uColor[10] / 255.0;
-				}
-				else if (gl_FragColor.b == 1.0) {
-					if (vColorIndex == 0.0) gl_FragColor = uColor[2] / 255.0;
-					if (vColorIndex == 1.0) gl_FragColor = uColor[5] / 255.0;
-					if (vColorIndex == 2.0) gl_FragColor = uColor[8] / 255.0;
-					if (vColorIndex == 3.0) gl_FragColor = uColor[11] / 255.0;
-				}
-			}
+			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 		}
 	</script>
-	
-	<script id="crtShader" type="x-shader/x-fragment">
-		varying highp vec2 vTextureCoord;
-
-		varying lowp float vColorIndex;
-		
-		uniform lowp vec4 uColor[12];
-
-		uniform sampler2D uSampler;
-		uniform lowp vec4 uTint;
-		uniform bool uApplyPalette;
-		
-		void main(void) {
-		}
-	</script>
-	
 	<h2>
 		<a href="https://twitter.com/sumez" target="_blank"><i class="fab fa-twitter-square"></i></a>
 		<a href="https://github.com/sumez/nez" target="_blank"><i class="fab fa-github-square"></i></a>
@@ -424,7 +406,7 @@
 		<li>Famicom Disk System support</li>
 		<li>Improve CPU/PPU cycle synchronization</li>
 		<li>All unofficial opcodes</li>
-		<li>CRT style shaders</li>
+		<li>Better CRT shaders (correct scanlines, color bleed, etc)</li>
 		<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
 		<li>Save states.... maaybe?</li>
 	</ul>

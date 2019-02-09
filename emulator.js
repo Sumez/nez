@@ -176,20 +176,63 @@ include 'mappers.js';
 			: [attrSources[0], attrSources[0], attrSources[1], attrSources[1]];
 	}
 	
+	var useGl = false; // GL is slower(!) but allows use of shaders
+	var shaderScript;
 	var context; // 256x240 backbuffer
 	var output;
 	var debug = false;
 	var glNt;
 	var glChr;
+	
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', 'crt.glsl', true);
+	xhr.onload = function(e) {
+		shaderScript = xhr.responseText;
+		if (useGl) initGl();
+	};
+	xhr.send(null);
+	
+	function initGl() {
+		if (!shaderScript) return;
+		var scale = 3;
+		context = GlEngine(256*scale, 240*scale, shaderScript);
+		context.AddTextureData('output', outputBytes, 256, 256);
+		context.SpriteBatch();
+		context.DrawSprite('output', 0, 256*3, 0, 0, 256, 256, false, false, scale);
+		context.SetCustomUniforms({
+			//'FrameDirection': 1 ,
+			//'FrameCount': 1 ,
+			'OutputSize': [256*scale, 256*scale],
+			'TextureSize': [256, 256],
+			'InputSize': [256, 256],
+			'MVPMatrix': new Float32Array([
+				2,0,0,0,
+				0,-256.0*2/240,0,0,
+				0,0,2,0,
+				-256*scale,256*scale,0,256*scale
+			])
+		});
+		context.Render(); // Buffer a draw of the "output" texture, so we can quickly repeat it
+	}
+	function initSoftRender() {
+		context = window.document.createElement('canvas').getContext('2d');
+		context.canvas.width = 256;
+		context.canvas.height = 240;
+		context.imageData = new ImageData(outputColorEdit, 256, 256);
+	}
+	
 	function Run(canvas, debugmode) {
 		output = canvas.getContext('2d');
 
 		if (!loaded) return;
-
-		context = GlEngine(256, 240);
-		context.AddTextureData('output', outputBytes, 256, 256);
-		
 		debug = (debugmode == true);
+
+		if (useGl) {
+			initGl();
+		}
+		else {
+			initSoftRender();
+		}
 		if (debug) {
 			glNt = GlEngine(512, 480);
 			glNt.AddTextureData('nt', ntBytes, 512, 512);
@@ -452,7 +495,10 @@ include 'mappers.js';
 		useMouse: UseMouse,
 		isPlaying: function () { return loaded; },
 		buttonConfig: ButtonConfig,
-		render: renderFrame
+		render: renderFrame,
+		enableShader: function(shaderScript) { useGl = true; initGl(); },
+		disableShader: function() { useGl = false; initSoftRender(); }
+		
 		
 		
 	};

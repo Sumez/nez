@@ -527,64 +527,20 @@ function renderFrame() {
 			glChr.Render();
 		}
 
-		//context.UpdateTextureData('nt', ntBytes);
-		//context.UpdateTextureData('chr', spriteBytes);
-		context.UpdateTextureData('output', outputBytes);
-
-		context.Clear(paletteBytes[bgColor] / 255, paletteBytes[bgColor+1] / 255, paletteBytes[bgColor+2] / 255);
-				
-		//ntContext.imageSmoothingEnabled = ntContext.webkitImageSmoothingEnabled = ntContext.mozImageSmoothingEnabled = false;
-		//ntContext.drawImage(glEngine.Canvas(), 0, 0, 512, 480, 0, 0, 512, 480);
-
-		//ntContext.putImageData(new ImageData(ntClampedBytes, 512, 512), 0, 0);
-		
-		//context.clearRect(0, 0, 256, 240);
-		context.SpriteBatch();
-		context.DrawSprite('output', 0, 256, 0, 0, 256, 256);
-
-		/*
-		var offX = ((ntIndex & 1) == 0 ? 0 : 256) - xScroll;
-		var offY = ((ntIndex & 2) == 0 ? 240 : 480) - yScroll;
-		context.DrawSprite('nt', offX, offY, 0, 0, 256, 240);
-		offX = ((ntIndex & 1) != 0 ? 0 : 256) - xScroll;
-		context.DrawSprite('nt', offX, offY, 256, 0, 256, 240);
-		offY = ((ntIndex & 2) != 0 ? 240 : 480) - yScroll;
-		context.DrawSprite('nt', offX, offY, 256, 240, 256, 240);
-		offX = ((ntIndex & 1) == 0 ? 0 : 256) - xScroll;
-		context.DrawSprite('nt', offX, offY, 0, 240, 256, 240);
-
-		context.Render();
-		context.SpriteBatch();
-
-		for (var i = 0; i < 64; i++) {
-			var spriteOffset = i * 4;
-			var x = oamMemory[spriteOffset + 3];
-			var y = oamMemory[spriteOffset] + 9;
-			var spriteIndex = oamMemory[spriteOffset + 1];
-			var flipX = (oamMemory[spriteOffset + 2] & 0x40) != 0;
-			var flipY = (oamMemory[spriteOffset + 2] & 0x80) != 0;
-			var paletteIndex = oamMemory[spriteOffset + 2] & 3;
-
-			offX = (spriteIndex & 0x0f) << 3;
-			offY = ((spriteIndex & 0xf0) >> 1);
-			if (tallSprites) {
-				if ((spriteIndex & 1) != 0) {
-					offX -= 8;
-					offY += 128;
-				}
-				if (flipY) {
-					y += 8;
-				}
-			}
-			if (spritesOnChr1000) offY = (offY + 128) & 0xFF;
-			context.DrawSprite('chr', x, y, offX, offY, 8, 8, flipX, flipY, paletteIndex);
-			if (tallSprites) context.DrawSprite('chr', x, y+(flipY ? -8 : 8), offX+8, offY, 8, 8, flipX, flipY, paletteIndex);
+		var backBuffer;
+		if (useGl) {
+			context.UpdateTextureData('output', outputBytes);
+			context.Clear(paletteBytes[bgColor] / 255, paletteBytes[bgColor+1] / 255, paletteBytes[bgColor+2] / 255);
+			context.DrawBuffer();
+			backBuffer = context.Canvas();
+			output.imageSmoothingEnabled = output.webkitImageSmoothingEnabled = output.mozImageSmoothingEnabled = true;
 		}
-		context.Render(spritePalettes);
-		*/
-		context.Render();
-		output.imageSmoothingEnabled = output.webkitImageSmoothingEnabled = output.mozImageSmoothingEnabled = false;
-		output.drawImage(context.Canvas(), 0, 0, 256, 240, 0, 0, output.canvas.width, output.canvas.height);
+		else {
+			context.putImageData(context.imageData, 0, 0);
+			backBuffer = context.canvas;
+			output.imageSmoothingEnabled = output.webkitImageSmoothingEnabled = output.mozImageSmoothingEnabled = false;
+		}
+		output.drawImage(backBuffer, 0, 0, backBuffer.width, backBuffer.height, 0, 0, output.canvas.width, output.canvas.height);
 }
 var tileBuffer = new ArrayBuffer(128*128*2);
 var tiles = new Uint8Array(tileBuffer);
