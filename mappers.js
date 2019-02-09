@@ -1,5 +1,6 @@
 
 var singleScreen = false;
+var fourScreen = false;
 var prgBanks, chrBanks;
 var prgRam = new Uint8Array(0x2000);
 
@@ -67,12 +68,58 @@ function initChrBanks(size, isRam, banks) {
 		initPrgBanks(0x4000);
 		prgBanks[1] = (prgData.byteLength / 0x4000) - 1; // Fix last bank
 		var unrom = new HwRegister(null, function(value) {
-			prgBanks[0] = value;
+			prgBanks[0] = value & 0x0F;
 		});
 		for (var i = 0x8000; i < 0x10000; i++) {
 			hwRegisters[i] = unrom;
 		}
 	};
+
+	// UNROM 512
+	mappers[30] = function() {
+		var prgBank = 0, chrBank = 0;
+		if (fourScreen && vMirroring) {
+			var nts = [
+				new Uint8Array(0x400),
+				new Uint8Array(0x400),
+				new Uint8Array(0x400),
+				new Uint8Array(0x400)
+			];
+			nametables = [nts[0],nts[1],nts[2],nts[3]];
+			attributetables = [nts[0].subarray(-0x40),nts[1].subarray(-0x40),nts[2].subarray(-0x40),nts[3].subarray(-0x40)];
+		}
+		if (fourScreen && !vMirroring) {
+			singleScreen = true;
+		}
+		var chrRamBackup = [new Uint8Array(0x2000), new Uint8Array(0x2000), new Uint8Array(0x2000), new Uint8Array(0x2000)];
+		
+		var unrom = new HwRegister(null, function(value) {
+			chrRamBackup[chrBank].set(ppuMemory.subarray(0, 0x2000));
+
+			prgBank = value & 0x1F;
+			chrBank = (value & 0x60) >> 5;
+			var ntIndex = (value & 0x80) >> 7;
+			if (!fourScreen) {
+				singleScreen = ntIndex != true;
+				setMirroring();
+				if (singleScreen) ntIndex = 0;
+			}
+			else {
+				// TODO: PPU $3000-$3EFF RAM
+			}
+			if (singleScreen) {
+				nametables = [nameTableSources[ntIndex],nameTableSources[ntIndex],nameTableSources[ntIndex],nameTableSources[ntIndex]];
+				attributetables = [attrSources[ntIndex],attrSources[ntIndex],attrSources[ntIndex],attrSources[ntIndex]];
+			}
+			
+			cpuMemory.set(prgData.subarray(prgBank*0x4000, (prgBank+1)*0x4000), 0x8000);
+			ppuMemory.set(chrRamBackup[chrBank], 0);
+		});
+		for (var i = 0x8000; i < 0x10000; i++) {
+			hwRegisters[i] = unrom;
+		}
+	};
+	
 	
 	// MMC1
 	mappers[1] = function() {
@@ -397,7 +444,6 @@ function initChrBanks(size, isRam, banks) {
 	var cycleCounterBytes = new Uint8Array(cycleCounterBuffer);
 	var cycleCounter = new Uint16Array(cycleCounterBuffer);
 
-	
 	// GTROM
 	mappers[111] = function() {
 		var extraNametables = [

@@ -137,6 +137,7 @@ include 'mappers.js';
 		vMirroring = (header[6] & 1) != 0;
 		setMirroring();
 		saveRam = (header[6] & 2) != 0;
+		fourScreen = (header[6] & 8) != 0;
 		var mapperId = (header[6] & 0xf0) >> 4;
 		mapperId |= header[7] & 0xf0;
 		
@@ -304,13 +305,16 @@ include 'mappers.js';
 			timing = window.requestAnimationFrame(ppuAdvanceFrame);
 		}
 	}
+	var debugCycleCount = 0;
 	var trace = [];
 	var breakpoints = [];
+
 	var timing;
 	var currentCycleCount;
 	var pendingIrq = false;
 	var pendingNmi = false;
 	var frameEnded = false;
+	
 	function runPc() {
 		timing = window.requestAnimationFrame(ppuAdvanceFrame);
 		frameEnded = false;
@@ -318,19 +322,21 @@ include 'mappers.js';
 		pcLoop:
 		while (true) {
 
-			 // TODO: only debug
-			//var debug = cpuRegisters;
-			//var debug2 = ppuMemory;
-			//var debug3 = stack;
-			//var debug4 = scanline;
-			//var debug5 = pixelOnScanline;
-			//var debug6 = currentY;
-			//trace.push(pc[0].toString(16).toUpperCase());
-			//if (trace.length > 1000) trace = trace.slice(-200);
+			/*
+			// TODO: only debug
+			var debug = cpuRegisters;
+			var debug2 = ppuMemory;
+			var debug3 = stack;
+			var debug4 = scanline;
+			var debug5 = pixelOnScanline;
+			var debug6 = currentY;
+			trace.push(pc[0].toString(16).toUpperCase());
+			if (trace.length > 1000) trace = trace.slice(-200);
 			
 			//if (breakpoints.indexOf(pc[0]) >= 0) debugger;
 			// debug end
-
+			*/
+			
 			if (pendingNmi) {
 				jumpToIrq(NMI);
 				pendingNmi = false;

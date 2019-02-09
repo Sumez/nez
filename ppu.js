@@ -131,7 +131,10 @@ function ppuPixel() {
 			if (irqCounter[0] == 0) irqCounter[0] = irqCounter[1]; // IRQ reload
 			else if (scanline < 240 && (showBG || showSprites)) {
 				irqCounter[0]--;
-				if (scanlineIrqEnabled && irqCounter[0] == 0) pendingIrq = true;
+				if (scanlineIrqEnabled && irqCounter[0] == 0) {
+					currentCycleCount++; // TODO: For some reason adding a cycle here fixes all timing issues for MMC3 splits. I need to find out where it comes from
+					pendingIrq = true;
+				}
 			}
 		}
 		pixelOnScanline++;
@@ -144,6 +147,8 @@ if (scanline == 261 && pixelOnScanline == 301) {
 		if (pixelOnScanline == 341) pixelOnScanline = 0;
 		return;
 	}
+	
+	
 	if (pixelOnScanline == 0) ppuScanline(); // Individual pixel mode
 	if (pixelOnScanline == 1 && scanline == 241) ppuIsVblank();
 	if (scanline == 262) {

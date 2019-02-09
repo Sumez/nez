@@ -598,7 +598,7 @@ window.testOp = function() {
 	
 	if (illegalOpcodes) {
 		
-		opcodes[BRK] = function() { pc[0]++; irq(IRQ); }; // not really illegal, but catching it helps with debugging :)
+		opcodes[BRK] = function() { pc[0]++; pendingIrq = true; }; // not really illegal, but catching it helps with debugging :)
 
 		opcodes[LAXzp] = function() { cpuRegisters[X] = loadValue(readValue(param8(), -1, true), A); };
 		opcodes[LAXzpY] = function() { cpuRegisters[X] = loadValue(readValue(param8(), Y, true), A); };

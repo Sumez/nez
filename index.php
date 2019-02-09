@@ -11,6 +11,30 @@
 	<meta name="twitter:description" content="A JavaScript based NES emulator" />
 	<meta name="twitter:image" content="http://eternal.dk/emu/nez.png" />
 	<meta name="twitter:creator" content="@sumez" />
+	<script id="vertex" type="x-shader/x-vertex">
+		attribute vec2 aVertexPosition;
+		attribute vec2 aTextureCoord;
+
+		uniform vec2 u_translation;
+		uniform vec2 u_resolution;
+
+		varying highp vec2 vTextureCoord;
+
+		void main(void) {
+			vec2 cBase = u_resolution / vec2(2, 2);
+			gl_Position = vec4(
+				((aVertexPosition) + u_translation - cBase) / cBase
+			, 0, 1.0) * vec4(1, -1, 1, 1);
+			vTextureCoord = aTextureCoord;
+		}
+	</script>
+	<script id="textureFragment" type="x-shader/x-fragment">
+		varying highp vec2 vTextureCoord;
+		uniform sampler2D uSampler;
+		void main(void) {
+			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+		}
+	</script>
 	<script id="colorFragment" type="x-shader/x-fragment">
 		uniform lowp vec4 uColor;
 		void main(void) {
@@ -54,7 +78,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 </head>
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
-	<script type="text/javascript" src="emulatorscript.php?1"></script>
+	<script type="text/javascript" src="emulatorscript.php?2"></script>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 	<img src="nez.png" style="display: none;" class="logo" />
 	<div class="emulator">
@@ -358,31 +382,6 @@
 			save();
 		}
 	</script>
-	<script id="vertex" type="x-shader/x-vertex">
-		attribute vec2 aVertexPosition;
-		attribute vec2 aTextureCoord;
-
-		uniform vec2 u_translation;
-		uniform vec2 u_resolution;
-
-		varying highp vec2 vTextureCoord;
-
-		void main(void) {
-			vec2 cBase = u_resolution / vec2(2, 2);
-			gl_Position = vec4(
-				((aVertexPosition) + u_translation - cBase) / cBase
-			, 0, 1.0) * vec4(1, -1, 1, 1);
-			vTextureCoord = aTextureCoord;
-		}
-	</script>
-
-	<script id="textureFragment" type="x-shader/x-fragment">
-		varying highp vec2 vTextureCoord;
-		uniform sampler2D uSampler;
-		void main(void) {
-			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-		}
-	</script>
 	<h2>
 		<a href="https://twitter.com/sumez" target="_blank"><i class="fab fa-twitter-square"></i></a>
 		<a href="https://github.com/sumez/nez" target="_blank"><i class="fab fa-github-square"></i></a>
@@ -399,7 +398,6 @@
 	<strong>Support / accuracy:</strong>
 	<ul>
 		<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
-		<li>Support for homebrew mapper 30 (UNROM 512)</li>
 		<li>Controller support</li>
 		<li>Improve mouse support</li>
 		<li>50hz/PAL support</li>
