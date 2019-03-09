@@ -13,7 +13,7 @@ This project relies on PHP to put a lot of the code for the project together, ho
 files on a static file server. We can manually run PHP to do this for us. The only lost functionality is debug
 information. 
 
-This is automatically done on each build to create the `dist` directory, which you can host on any static file server.
+This is automatically run in a commit hook to create the `dist` directory, which you can host on any static file server.
 Please do not change the `dist` directory manually, or your changes will be overwritten.
 
 If you'd like to do this yourself, you can run either `build_dist.sh` (Linux and Mac) or `build_dist.bat` (Windows) - 

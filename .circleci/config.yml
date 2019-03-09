@@ -1,0 +1,14 @@
+# This relies on a github key with write access being added to circleci 
+version: 2
+jobs:
+  build:
+    docker:
+      # Specify the version you desire here
+      - image: circleci/php:7.1-jessie
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+
+      - run: rm -rf dist && ./build_dist.sh && git add * && git commit -a -m "Automated commit to rebuild dist directory [skip ci]" && git push
