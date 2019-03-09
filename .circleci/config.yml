@@ -11,4 +11,4 @@ jobs:
 
       # Download and cache dependencies
       - run: git config --global user.email "circle-bot@cpprograms.net" && git config --global user.name "CircleCI Automation"
-      - run: rm -rf dist && ./build_dist.sh && git add * && git commit -a -m "Automated commit to rebuild dist directory [skip ci]" && git push
+      - run: rm -rf dist && ./build_dist.sh && ls dist && git add * && git commit -a -m "Automated commit to rebuild dist directory [skip ci]" && git push
