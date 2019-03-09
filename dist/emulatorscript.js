@@ -2962,7 +2962,16 @@ PRG RAM mode: (needs to be extended to take extended RAM into consideration, or 
 		hwRegisters[0x5203] = new HwRegister(null, irqLatch);
 		hwRegisters[0x5204] = irqStatus;
 	}
-		
+/* 
+
+Introduces a very simple api off the `window.emu` object. Allows for getting/setting a few common things.
+
+*/
+
+var Api = {};
+Api.getSram = function() {
+    return cpuMemory.subarray(0x6000, 0x8000);
+};		
 	var prgData;
 	var chrData;
 	var chrRam = false;
@@ -3404,8 +3413,8 @@ PRG RAM mode: (needs to be extended to take extended RAM into consideration, or 
 		buttonConfig: ButtonConfig,
 		render: renderFrame,
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
-		disableShader: function() { useGl = false; initSoftRender(); }
-		
+		disableShader: function() { useGl = false; initSoftRender(); },
+		Api: Api
 		
 		
 	};

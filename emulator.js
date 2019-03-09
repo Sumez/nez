@@ -59,6 +59,7 @@ include 'audio.js';
 include 'input.js';
 include 'opcodes.js';
 include 'mappers.js';
+include 'api.js';
 
 ?>
 		
@@ -503,8 +504,8 @@ include 'mappers.js';
 		buttonConfig: ButtonConfig,
 		render: renderFrame,
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
-		disableShader: function() { useGl = false; initSoftRender(); }
-		
+		disableShader: function() { useGl = false; initSoftRender(); },
+		Api: Api
 		
 		
 	};
