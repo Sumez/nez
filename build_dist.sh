@@ -13,8 +13,10 @@ command -v php >/dev/null 2>&1 || { echo "The php command is required to build s
 
 mkdir dist || echo "Dist dir already exists; continuing..."
 php -d display_errors=0 index.php > dist/index_untouched.html
+php -d display_errors=0 index_embed.php > dist/index_embed_untouched.html
 php -d display_errors=0 emulatorscript.php > dist/emulatorscript.js
 php -d display_errors=1 -r "echo str_replace('emulatorscript.php', 'emulatorscript.js', file_get_contents('./dist/index_untouched.html'));" > dist/index.html
+php -d display_errors=0 -r "echo str_replace('emulatorscript.php', 'emulatorscript.js', file_get_contents('./dist/index_embed_untouched.html'));" > dist/index_embed.html
 cp *.svg dist
 cp *.glsl dist
 cp *.png dist
