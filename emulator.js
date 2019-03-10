@@ -502,6 +502,7 @@ include 'api.js';
 		useMouse: UseMouse,
 		isPlaying: function () { return loaded; },
 		buttonConfig: ButtonConfig,
+		controller: Controller,
 		render: renderFrame,
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
 		disableShader: function() { useGl = false; initSoftRender(); },

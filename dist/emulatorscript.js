@@ -1357,6 +1357,37 @@ function UseMouse() {
 window.document.addEventListener("mousemove", updateMousePosition, false);
 window.document.addEventListener("mousedown", function (e) { mouseButton(e.button, 1) }, false);
 window.document.addEventListener("mouseup", function (e) { mouseButton(e.button, 0) }, false);
+
+var Controller = {};
+
+function buttonPressed(button) {
+	controllers[0] |= button;
+}
+
+function buttonReleased(button) {
+	if (controllers[0] & button) {
+		controllers[0] ^= button;
+	}
+}
+
+Controller.aPressed = function() { return buttonPressed(ABUTTON); };
+Controller.aReleased = function() { return buttonReleased(ABUTTON); };
+Controller.bPressed = function() { return buttonPressed(BBUTTON); };
+Controller.bReleased = function() { return buttonReleased(BBUTTON); };
+
+Controller.selectPressed = function() { return buttonPressed(SELECT); };
+Controller.selectReleased = function() { return buttonReleased(SELECT); };
+Controller.startPressed = function() { return buttonPressed(START); };
+Controller.startReleased = function() { return buttonReleased(START); };
+
+Controller.upPressed = function() { return buttonPressed(UP); };
+Controller.upReleased = function() { return buttonReleased(UP); };
+Controller.downPressed = function() { return buttonPressed(DOWN); };
+Controller.downReleased = function() { return buttonReleased(DOWN); };
+Controller.leftPressed = function() { return buttonPressed(LEFT); };
+Controller.leftReleased = function() { return buttonReleased(LEFT); };
+Controller.rightPressed = function() { return buttonPressed(RIGHT); };
+Controller.rightReleased = function() { return buttonReleased(RIGHT); };
 const illegalOpcodes = true;
 
 function addrRead(address) {
@@ -3411,6 +3442,7 @@ Api.getSram = function() {
 		useMouse: UseMouse,
 		isPlaying: function () { return loaded; },
 		buttonConfig: ButtonConfig,
+		controller: Controller,
 		render: renderFrame,
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
 		disableShader: function() { useGl = false; initSoftRender(); },

@@ -296,6 +296,61 @@
 			text-align: left;
 			color: rgba(0,0,0,0.5);			
 		}
+
+		.controllerDisp {
+			max-width: 600px;
+			margin: 20px auto;
+			text-align: center;
+			color: rgba(0,0,0,0.5);
+			border: 20px solid #ccc;
+			border-radius: 20px;
+			background-color: #000;
+			padding: 40px 0;
+		}
+
+		.controllerDisp button {
+    		padding: 15px 20px;
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			background-color: #444;
+			color: #eee;
+		}
+
+		.controllerDisp > div {
+			display: inline-block;
+		}
+
+		.controllerDisp .directions {
+			width: 30%;
+		}
+
+		.controllerDisp .middle {
+			width: 30%;
+		}
+		
+		.controllerDisp .buttons {
+			width: 30%;
+		}
+
+		.controllerDisp .directions .up, .controllerDisp .directions .down {
+			display: block;
+			margin: auto;
+			width: 50%;
+		}
+
+		.controllerDisp .directions .left, .controllerDisp .directions .right {
+			display: inline-block;
+			width: 48%;
+		}
+
+		.controllerDisp .menu {
+			margin-top: 100px;
+		}
+
+		.controllerDisp .buttons {
+			margin-top: 125px;
+		}
 	</style>
 	<script type="text/javascript">
 		var config = {};
@@ -383,38 +438,62 @@
 		}
 	</script>
 	<h2>
+		<span onclick="$('.controllerDisp').toggle(); $(window).scrollTop(100000)">
+			Touch Controls <i class="fas fa-chevron-circle-down"></i>
+		</span>
+	</h2>
+	<div class="controllerDisp" style="display: none;">
+		<div class="directions">
+			<button class="up" onmousedown="emu.controller.upPressed()" onmouseup="emu.controller.upReleased()">Up</button>
+			<button class="left" onmousedown="emu.controller.leftPressed()" onmouseup="emu.controller.leftReleased()">Left</button>
+			<button class="right" onmousedown="emu.controller.rightPressed()" onmouseup="emu.controller.rightReleased()">Right</button>
+			<button class="down" onmousedown="emu.controller.downPressed()" onmouseup="emu.controller.downReleased()">Down</button>
+		</div>
+
+		<div class="middle">
+			<button class="start" onmousedown="emu.controller.startPressed()" onmouseup="emu.controller.startReleased()">Start</button>
+			<button class="select" onmousedown="emu.controller.selectPressed()" onmouseup="emu.controller.selectReleased()">Select</button>
+		</div>
+
+		<div class="buttons">
+			<button class="a" onmousedown="emu.controller.aPressed()" onmouseup="emu.controller.aReleased()">A</button>
+			<button class="b" onmousedown="emu.controller.bPressed()" onmouseup="emu.controller.bReleased()">B</button>
+		</div>
+	</div>
+
+	<h2>
 		<a href="https://twitter.com/sumez" target="_blank"><i class="fab fa-twitter-square"></i></a>
 		<a href="https://github.com/sumez/nez" target="_blank"><i class="fab fa-github-square"></i></a>
-		<span onclick="$('.text').show(); $(window).scrollTop(100000)">
-		More about NEZ <i class="fas fa-chevron-circle-down"></i>
+		<span onclick="$('.text').toggle(); $(window).scrollTop(100000)">
+			More about NEZ <i class="fas fa-chevron-circle-down"></i>
 		</span>
 	</h2>
 	<div class="text" style="display: none;">
-	This is an emulator started as a short experiment to test how feasible it even was to pull off such a thing in JavaScript, and quickly improved to support many more games and features than I thought it possibly could, but it is also still evolving.<br />
-	If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href="https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
-	~ Sumez<br />
-	<br />
-	Features currently in the pipline for the future:<br /><br />
-	<strong>Support / accuracy:</strong>
-	<ul>
-		<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
-		<li>Controller support</li>
-		<li>Improve mouse support</li>
-		<li>50hz/PAL support</li>
-		<li>Famicom Disk System support</li>
-		<li>Improve CPU/PPU cycle synchronization</li>
-		<li>All unofficial opcodes</li>
-		<li>Better CRT shaders (correct scanlines, color bleed, etc)</li>
-		<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
-		<li>Save states.... maaybe?</li>
-	</ul>
-	<strong>Technical improvements</strong>
-	<ul>
-		<li>Better performance across all areas (most notably PPU emulation)</li>
-		<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
-		<li><s>Re-implement mappers to actually map addresses, rather than just copying data around</s> find a new way to do this without a huge performance overhead</li>
-		<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>
-	</ul>
+		This is an emulator started as a short experiment to test how feasible it even was to pull off such a thing in JavaScript, and quickly improved to support many more games and features than I thought it possibly could, but it is also still evolving.<br />
+		If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href="https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
+		~ Sumez<br />
+		<br />
+		Features currently in the pipline for the future:<br /><br />
+		<strong>Support / accuracy:</strong>
+		<ul>
+			<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
+			<li>Controller support</li>
+			<li>Improve mouse support</li>
+			<li>50hz/PAL support</li>
+			<li>Famicom Disk System support</li>
+			<li>Improve CPU/PPU cycle synchronization</li>
+			<li>All unofficial opcodes</li>
+			<li>Better CRT shaders (correct scanlines, color bleed, etc)</li>
+			<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
+			<li>Save states.... maaybe?</li>
+		</ul>
+		<strong>Technical improvements</strong>
+		<ul>
+			<li>Better performance across all areas (most notably PPU emulation)</li>
+			<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
+			<li><s>Re-implement mappers to actually map addresses, rather than just copying data around</s> find a new way to do this without a huge performance overhead</li>
+			<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>
+		</ul>
 	</div>
 </body>
 </html>
