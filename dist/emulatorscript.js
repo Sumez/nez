@@ -3428,7 +3428,7 @@ Api.getSram = function() {
 	
 	// NOTE: This isn't very clean, and likely needs some tweaking if it's to go back into master.
 	// If nothing else, probably want to take the canvas as an input.. maybe error handling and volume too.
-	function StartFromUrl(file) {
+	function StartFromFile(file) {
 		
 		if (!file.match(/\.nes$/i)) {
 			alert('invalid file');
@@ -3451,6 +3451,37 @@ Api.getSram = function() {
 		reader.readAsArrayBuffer(file);
 
 	}
+
+	function StartFromUrl(url) {
+		$.ajax({
+            url: url,
+            xhrFields:{
+                responseType: 'blob'
+            },
+            success: function(data){
+				var reader = new FileReader();
+				reader.onload = function (e) {
+		
+					setTimeout(function() { 
+		
+						SetMasterVolume($('[type=range]').val() / 100)
+						if (!LoadRomData(e.target.result, file)) {
+							return;
+						}
+						//$('.button.open').remove();
+						Run($('canvas')[0], window.isDebug);
+					});
+		
+				};
+				reader.readAsArrayBuffer(data);
+		
+            },
+            error:function(){
+                console.error('Could not load rom from url.');
+            }
+        });
+
+	}
 	
 	
 	
@@ -3470,7 +3501,8 @@ Api.getSram = function() {
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
 		disableShader: function() { useGl = false; initSoftRender(); },
 		Api: Api,
-		startFromUrl: StartFromUrl
+		startFromUrl: StartFromUrl,
+		startFromFile: StartFromFile
 		
 		
 	};
