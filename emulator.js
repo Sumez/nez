@@ -490,7 +490,7 @@ include 'api.js';
 	// If nothing else, probably want to take the canvas as an input.. maybe error handling and volume too.
 	function StartFromFile(file) {
 		
-		if (!file.match(/\.nes$/i)) {
+		if (!file.name.match(/\.nes$/i)) {
 			alert('invalid file');
 			return;
 		}
