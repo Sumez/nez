@@ -44,27 +44,7 @@
 	<script type="text/javascript">
 		window.isDebug = location.href.match(/debug=1$/i) ? true : false;
 		function loadfile(event) {
-				var file = event.files[0];
-				if (!file) return;
-				if (!file.name.match(/\.nes$/i)) {
-					alert('invalid file');
-					return;
-				}
-				var reader = new FileReader();
-				reader.onload = function (e) {
-
-					setTimeout(function() { 
-
-						window.emu.volume($('[type=range]').val() / 100)
-						if (!window.emu.loadRomData(e.target.result, file.name)) {
-							return;
-						}
-						//$('.button.open').remove();
-						window.emu.run($('canvas')[0], window.isDebug);
-					});
-
-				};
-				reader.readAsArrayBuffer(file);
+			window.emu.startFromUrl(event.files[0]);
 		}
 		
 		function fullscreen() {
