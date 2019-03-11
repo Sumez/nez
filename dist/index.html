@@ -45,7 +45,7 @@
 		window.isDebug = location.href.match(/debug=1$/i) ? true : false;
 		function loadfile(event) {
 			if (!event.files[0] || !event.files[0].name) return;
-			window.emu.startFromFile(event.files[0].name);
+			window.emu.startFromFile(event.files[0]);
 		}
 		
 		function fullscreen() {
