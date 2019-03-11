@@ -3429,8 +3429,8 @@ Api.getSram = function() {
 	// NOTE: This isn't very clean, and likely needs some tweaking if it's to go back into master.
 	// If nothing else, probably want to take the canvas as an input.. maybe error handling and volume too.
 	function StartFromUrl(file) {
-		if (!file) return;
-		if (!file.name.match(/\.nes$/i)) {
+		
+		if (!file.match(/\.nes$/i)) {
 			alert('invalid file');
 			return;
 		}
@@ -3440,7 +3440,7 @@ Api.getSram = function() {
 			setTimeout(function() { 
 
 				SetMasterVolume($('[type=range]').val() / 100)
-				if (!LoadRomData(e.target.result, file.name)) {
+				if (!LoadRomData(e.target.result, file)) {
 					return;
 				}
 				//$('.button.open').remove();

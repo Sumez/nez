@@ -488,9 +488,9 @@ include 'api.js';
 	
 	// NOTE: This isn't very clean, and likely needs some tweaking if it's to go back into master.
 	// If nothing else, probably want to take the canvas as an input.. maybe error handling and volume too.
-	function StartFromUrl(file) {
-		if (!file) return;
-		if (!file.name.match(/\.nes$/i)) {
+	function StartFromFile(file) {
+		
+		if (!file.match(/\.nes$/i)) {
 			alert('invalid file');
 			return;
 		}
@@ -500,7 +500,7 @@ include 'api.js';
 			setTimeout(function() { 
 
 				SetMasterVolume($('[type=range]').val() / 100)
-				if (!LoadRomData(e.target.result, file.name)) {
+				if (!LoadRomData(e.target.result, file)) {
 					return;
 				}
 				//$('.button.open').remove();
@@ -509,6 +509,37 @@ include 'api.js';
 
 		};
 		reader.readAsArrayBuffer(file);
+
+	}
+
+	function StartFromUrl(url) {
+		$.ajax({
+            url: url,
+            xhrFields:{
+                responseType: 'blob'
+            },
+            success: function(data){
+				var reader = new FileReader();
+				reader.onload = function (e) {
+		
+					setTimeout(function() { 
+		
+						SetMasterVolume($('[type=range]').val() / 100)
+						if (!LoadRomData(e.target.result, file)) {
+							return;
+						}
+						//$('.button.open').remove();
+						Run($('canvas')[0], window.isDebug);
+					});
+		
+				};
+				reader.readAsArrayBuffer(data);
+		
+            },
+            error:function(){
+                console.error('Could not load rom from url.');
+            }
+        });
 
 	}
 	
@@ -530,7 +561,8 @@ include 'api.js';
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
 		disableShader: function() { useGl = false; initSoftRender(); },
 		Api: Api,
-		startFromUrl: StartFromUrl
+		startFromUrl: StartFromUrl,
+		startFromFile: StartFromFile
 		
 		
 	};
