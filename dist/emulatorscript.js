@@ -3452,35 +3452,23 @@ Api.getSram = function() {
 
 	}
 
-	function StartFromUrl(url) {
-		$.ajax({
-            url: url,
-            xhrFields:{
-                responseType: 'blob'
-            },
-            success: function(data){
-				var reader = new FileReader();
-				reader.onload = function (e) {
-		
-					setTimeout(function() { 
-		
-						SetMasterVolume($('[type=range]').val() / 100)
-						if (!LoadRomData(e.target.result, file)) {
-							return;
-						}
-						//$('.button.open').remove();
-						Run($('canvas')[0], window.isDebug);
-					});
-		
-				};
-				reader.readAsArrayBuffer(data);
-		
-            },
-            error:function(){
-                console.error('Could not load rom from url.');
-            }
-        });
+	function StartFromUrl(url, romName) {
+		var oReq = new XMLHttpRequest();
+		oReq.open("GET", url, true);
+		oReq.responseType = "arraybuffer";
 
+		oReq.onload = function (oEvent) {
+			var arrayBuffer = oReq.response; // Note: not oReq.responseText
+			if (arrayBuffer) {
+				SetMasterVolume($('[type=range]').val() / 100)
+				if (!LoadRomData(arrayBuffer, romName)) {
+					return;
+				}
+				Run($('canvas')[0], window.isDebug);
+			}
+		};
+
+		oReq.send(null);
 	}
 	
 	
