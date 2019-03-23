@@ -53,15 +53,7 @@ window.emu = (function() {
 	var mapWrite = [];
 	var mapChrRead, mapChrWrite;
 
-/*
-Support for features with browser prefixes and the like... fixes weird shortcomings in:
-- safari on ios
-
-*/
-
-if (!window.AudioContext && window.webkitAudioContext) {
-    window.AudioContext = window.webkitAudioContext;
-}var frame = 0;
+var frame = 0;
 var scanline = 0;
 var pixelOnFrame = 0;
 var pixelOnScanline = 0;
