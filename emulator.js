@@ -54,6 +54,7 @@ window.emu = (function() {
 
 <?php
 
+include 'browsersupport.js';
 include 'ppu.js';
 include 'audio.js';
 include 'input.js';
