@@ -8,6 +8,7 @@
     -->
 	<meta charset="utf-8" />
 	<title>NEZ - play NES while surfing the WWW :O</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<meta property="og:title" content="NEZ - play NES while surfing the WWW :O" />
 	<meta property="og:url" content="http://eternal.dk/emu/" />
 	<meta property="og:image" content="nez.png" />
@@ -319,6 +320,13 @@
 			if (window.isDebug) return;
 			
 			var isFullscreen = ((screen.availHeight || screen.height-20) <= window.innerHeight);
+			var isPortrait = false;
+			if (screen.width < screen.height) {
+				// Probably mobile; gets its own treatment. Never fullscreen, because we need controls
+				isFullscreen = false;
+				isPortrait = true;
+			}
+
 			var canvas = $('.nes')[0];
 			var emulator = $('.emulator')[0];
 			var windowHeight = window.screen.height;
@@ -344,6 +352,7 @@
 			emulator.style.top = ((window.screen.height - height) / 2) + 'px';
 			emulator.style.left = ((window.screen.width - width) / 2) + 'px';
 			document.body.className = isFullscreen ? 'fullscreen' : '';
+			document.body.className += isPortrait ? ' portrait' : '';
 			
 			if (emu && emu.isPlaying()) emu.render(); // Refresh canvas after resize
 			else drawLogo();

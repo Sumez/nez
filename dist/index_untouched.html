@@ -3,6 +3,7 @@
 <head>
 	<meta charset="utf-8" />
 	<title>NEZ - play NES while surfing the WWW :O</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<meta property="og:title" content="NEZ - play NES while surfing the WWW :O" />
 	<meta property="og:url" content="http://eternal.dk/emu/" />
 	<meta property="og:image" content="nez.png" />
@@ -298,6 +299,23 @@
 			color: #eee;
 		}
 
+		.portrait .controllerDisp {
+			max-width: 90%;
+			padding: 20px 0;
+		}
+
+		.portrait .controllerDisp button {
+			padding: 8px 14px;
+		}
+
+		.portrait .controllerDisp .buttons {
+			margin-top: 30px;
+		}
+
+		.portrait .controllerDisp .menu {
+			margin-top: 25px;
+		}
+
 		.controllerDisp > div {
 			display: inline-block;
 		}
@@ -332,6 +350,16 @@
 		.controllerDisp .buttons {
 			margin-top: 125px;
 		}
+
+		.controllerDisp, .controllerDisp * {
+			/* Prevent text selection on screen-based inputs */
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
 	</style>
 	<script type="text/javascript">
 		var config = {};
@@ -351,6 +379,13 @@
 			if (window.isDebug) return;
 			
 			var isFullscreen = ((screen.availHeight || screen.height-20) <= window.innerHeight);
+			var isPortrait = false;
+			if (screen.width < screen.height) {
+				// Probably mobile; gets its own treatment. Never fullscreen, because we need controls
+				isFullscreen = false;
+				isPortrait = true;
+			}
+
 			var canvas = $('.nes')[0];
 			var emulator = $('.emulator')[0];
 			var windowHeight = window.screen.height;
@@ -376,6 +411,7 @@
 			emulator.style.top = ((window.screen.height - height) / 2) + 'px';
 			emulator.style.left = ((window.screen.width - width) / 2) + 'px';
 			document.body.className = isFullscreen ? 'fullscreen' : '';
+			document.body.className += isPortrait ? ' portrait' : '';
 			
 			if (emu && emu.isPlaying()) emu.render(); // Refresh canvas after resize
 			else drawLogo();
@@ -425,20 +461,20 @@
 	</h2>
 	<div class="controllerDisp" style="display: none;">
 		<div class="directions">
-			<button class="up" onmousedown="emu.controller.upPressed()" onmouseup="emu.controller.upReleased()">Up</button>
-			<button class="left" onmousedown="emu.controller.leftPressed()" onmouseup="emu.controller.leftReleased()">Left</button>
-			<button class="right" onmousedown="emu.controller.rightPressed()" onmouseup="emu.controller.rightReleased()">Right</button>
-			<button class="down" onmousedown="emu.controller.downPressed()" onmouseup="emu.controller.downReleased()">Down</button>
+			<button class="up" onmousedown="emu.controller.upPressed()" ontouchstart="emu.controller.upPressed()" ontouchend="emu.controller.upReleased()" onmouseup="emu.controller.upReleased()">Up</button>
+			<button class="left" onmousedown="emu.controller.leftPressed()" ontouchstart="emu.controller.leftPressed()" ontouchend="emu.controller.leftReleased()" onmouseup="emu.controller.leftReleased()">Left</button>
+			<button class="right" onmousedown="emu.controller.rightPressed()" ontouchstart="emu.controller.rightPressed()" ontouchend="emu.controller.rightReleased()" onmouseup="emu.controller.rightReleased()">Right</button>
+			<button class="down" onmousedown="emu.controller.downPressed()" ontouchstart="emu.controller.downPressed()" ontouchend="emu.controller.downReleased()" onmouseup="emu.controller.downReleased()">Down</button>
 		</div>
 
 		<div class="middle">
-			<button class="start" onmousedown="emu.controller.startPressed()" onmouseup="emu.controller.startReleased()">Start</button>
-			<button class="select" onmousedown="emu.controller.selectPressed()" onmouseup="emu.controller.selectReleased()">Select</button>
+			<button class="select" onmousedown="emu.controller.selectPressed()" ontouchstart="emu.controller.selectPressed()" ontouchend="emu.controller.selectReleased()" onmouseup="emu.controller.selectReleased()">Select</button>
+			<button class="start" onmousedown="emu.controller.startPressed()" ontouchstart="emu.controller.startPressed()" ontouchend="emu.controller.startReleased()" onmouseup="emu.controller.startReleased()">Start</button>
 		</div>
 
 		<div class="buttons">
-			<button class="a" onmousedown="emu.controller.aPressed()" onmouseup="emu.controller.aReleased()">A</button>
-			<button class="b" onmousedown="emu.controller.bPressed()" onmouseup="emu.controller.bReleased()">B</button>
+			<button class="a" onmousedown="emu.controller.aPressed()" ontouchstart="emu.controller.aPressed()" ontouchend="emu.controller.aReleased()" onmouseup="emu.controller.aReleased()">A</button>
+			<button class="b" onmousedown="emu.controller.bPressed()" ontouchstart="emu.controller.bPressed()" ontouchend="emu.controller.bReleased()" onmouseup="emu.controller.bReleased()">B</button>
 		</div>
 	</div>
 
