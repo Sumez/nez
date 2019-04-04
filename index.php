@@ -319,7 +319,7 @@
 		}
 
 		.portrait .controllerDisp {
-			max-width: 90%;
+			max-width: 98%;
 			padding: 20px 0;
 		}
 
@@ -333,6 +333,22 @@
 
 		.portrait .controllerDisp .menu {
 			margin-top: 25px;
+		}
+
+		.portrait .controllerDisp .directions {
+			width: 35%;
+		}
+
+		.portrait .controllerDisp .middle {
+			width: 25%;
+		}
+
+		.portrait .controllerDisp .buttons {
+			width: 34%;
+		}
+
+		.portrait .controllerDisp .buttons button {
+			width: 48%;
 		}
 
 		.controllerDisp > div {
