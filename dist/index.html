@@ -302,6 +302,8 @@
 		.portrait .controllerDisp {
 			max-width: 98%;
 			padding: 20px 0;
+			position: relative;
+			padding-bottom: 60px;
 		}
 
 		.portrait .controllerDisp button {
@@ -317,15 +319,26 @@
 		}
 
 		.portrait .controllerDisp .directions {
-			width: 35%;
+			width: 45%;
 		}
 
 		.portrait .controllerDisp .middle {
-			width: 25%;
+			width: 100%;
+			position: absolute;
+			bottom: 10px;
+			left: 0;
+		}
+
+		.portrait .controllerDisp .middle button {
+			width: 30%;
+			margin: 0 10px;
 		}
 
 		.portrait .controllerDisp .buttons {
-			width: 34%;
+			width: 45%;
+			margin-left: 5%;
+			position: relative;
+			top: -10px;
 		}
 
 		.portrait .controllerDisp .buttons button {
