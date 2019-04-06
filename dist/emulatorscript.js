@@ -721,6 +721,30 @@ var NewApu = (function() {
 		if (audio || !enableAudioEmulation) return;
 		
 		audio = new AudioContext();
+
+		var buffer = audio.createBuffer(1, 1, 44100)
+		var dummy = audio.createBufferSource()
+		dummy.buffer = buffer
+		dummy.connect(audio.destination)
+		dummy.start(0)
+		dummy.disconnect()
+		
+		audio.close() // dispose old context
+		audio = new AudioContext();
+	
+
+		// Trigger a sound on IOS after a touch, which should allow us to start playing audio when the rom is ready.
+		function initializeIosSound() {
+			var oscillator = audio.createOscillator();
+			oscillator.frequency.value = 400;
+			oscillator.connect(audio.destination);
+			oscillator.start(0);
+			oscillator.stop(0.5); // TODO: Turn off this beep
+		}
+		document.addEventListener('touchend', initializeIosSound);
+		initializeIosSound();
+
+
 		//var compressor = audio.createDynamicsCompressor();
 		masterVolume = audio.createGain();
 		masterVolume.gain.setValueAtTime(masterVolumeValue, audio.currentTime);
@@ -730,7 +754,7 @@ var NewApu = (function() {
 		//compressor.connect(masterVolume);
 		//mixer.connect(masterVolume);
 		//mixer.connect(audio.destination);
-		mixer.connect(masterVolume);
+		mixer.connect(masterVolume);	   
 
 		clockStep = 1789773 / 2 / audio.sampleRate; // NES clock frequency / 2 = APU sample rate
 clockStep *= 0.97;
@@ -947,6 +971,7 @@ clockStep *= 0.97;
 			step = 0;
 		}
 		
+		// Cutting these two causes the problem to go away too
 		updatePulse(npulse1, pulse1);
 		updatePulse(npulse2, pulse2);
 		updateTriangle(ntriangle, triangle);
@@ -1029,6 +1054,7 @@ clockStep *= 0.97;
 		}
 		if (!triangle.haltLengthCounter) triangle.linearReload = false;
 		
+		// If these two are removed, the problem happens _MORE_OFTEN_
 		clockDivider(pulse1);
 		clockDivider(pulse2);
 		clockDivider(noise);
@@ -1150,10 +1176,13 @@ clockStep *= 0.97;
 			hwRegisters[0x4001] = new HwRegister(null, function(val) { sweep(pulse1, val); });
 			hwRegisters[0x4005] = new HwRegister(null, function(val) { sweep(pulse2, val); });
 
+
+			// NOTE: The pluse audio channels for some reason are causing the breakage. Triangle is NOT. Why? I don't know, stupid ios
 			hwRegisters[0x4002] = new HwRegister(null, function(val) { timer(pulse1, val); });
 			hwRegisters[0x4006] = new HwRegister(null, function(val) { timer(pulse2, val); });
 			hwRegisters[0x400A] = new HwRegister(null, function(val) { timer(triangle, val); });
 			hwRegisters[0x400E] = new HwRegister(null, noisePeriod);
+
 
 			hwRegisters[0x4003] = new HwRegister(null, function(val) { length(pulse1, val); });
 			hwRegisters[0x4007] = new HwRegister(null, function(val) { length(pulse2, val); });
@@ -3478,6 +3507,17 @@ Api.getSram = function() {
 
 		oReq.send(null);
 	}
+
+
+	// Initialize audio context when the user touches the screen the first time, to fix weird ios issues
+	function audioInitializer() {
+		// iOS 9
+		document.removeEventListener('touchend', audioInitializer);
+		apu.init();
+	}
+	// iOS 9
+	document.addEventListener('touchend', audioInitializer);	
+
 	
 	
 	

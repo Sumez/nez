@@ -531,6 +531,17 @@ include 'api.js';
 
 		oReq.send(null);
 	}
+
+
+	// Initialize audio context when the user touches the screen the first time, to fix weird ios issues
+	function audioInitializer() {
+		// iOS 9
+		document.removeEventListener('touchend', audioInitializer);
+		apu.init();
+	}
+	// iOS 9
+	document.addEventListener('touchend', audioInitializer);	
+
 	
 	
 	
