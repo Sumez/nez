@@ -218,6 +218,11 @@
 			cursor: pointer;
 			outline: none !important;
 		}
+		/* Hide button controls that don't work on mobile devices */
+		.portrait .controls .button.fullscreenButton, .portrait .controls .button.controller {
+			display: none;
+		}
+
 		html {
 			height: 100%;
 		}
