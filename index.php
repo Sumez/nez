@@ -4,6 +4,7 @@
 	<meta charset="utf-8" />
 	<title>NEZ - play NES while surfing the WWW :O</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="HandheldFriendly" content="true" />
 	<meta property="og:title" content="NEZ - play NES while surfing the WWW :O" />
 	<meta property="og:url" content="http://eternal.dk/emu/" />
 	<meta property="og:image" content="nez.png" />
@@ -318,9 +319,13 @@
 			color: #eee;
 		}
 
+		.portrait h2 {
+			margin: 5px auto;
+		}
+
 		.portrait .controllerDisp {
 			max-width: 98%;
-			padding: 20px 0;
+			padding: 10px 0;
 			position: relative;
 			padding-bottom: 60px;
 		}
@@ -407,7 +412,9 @@
 			-moz-user-select: none;
 			-ms-user-select: none;
 			user-select: none;
+			touch-action: manipulation;
 		}
+
 	</style>
 	<script type="text/javascript">
 		var config = {};
