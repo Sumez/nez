@@ -104,7 +104,7 @@
 			<div title="Toggle TV shader (might be slow)" class="button shader" onclick="toggleShader()">
 				<img src="tv.svg">
 			</div>
-			<div title="Full screen" class="button" onclick="fullscreen()">
+			<div title="Full screen" class="button fullscreenButton" onclick="fullscreen()">
 				<img src="fullscreen.svg">
 			</div>
 		</div>
@@ -213,6 +213,10 @@
 		.controls input {
 			cursor: pointer;
 			outline: none !important;
+		}
+		/* Hide button controls that don't work on mobile devices */
+		.portrait .controls .button.fullscreenButton, .portrait .controls .button.controller {
+			display: none;
 		}
 		html {
 			height: 100%;
