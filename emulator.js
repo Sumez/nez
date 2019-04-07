@@ -54,6 +54,7 @@ window.emu = (function() {
 
 <?php
 
+include 'browsersupport.js';
 include 'ppu.js';
 include 'audio.js';
 include 'input.js';
@@ -485,9 +486,14 @@ include 'mappers.js';
 	detectFps();
 
 	
-	
-	
-	
+	// Initialize audio context when the user touches the screen the first time, to fix weird ios issues
+	function audioInitializer() {
+		// iOS 9
+		document.removeEventListener('touchend', audioInitializer);
+		apu.init();
+	}
+	// iOS 9
+	document.addEventListener('touchend', audioInitializer);		
 	
 	
 	
@@ -501,6 +507,7 @@ include 'mappers.js';
 		useMouse: UseMouse,
 		isPlaying: function () { return loaded; },
 		buttonConfig: ButtonConfig,
+		controller: Controller,
 		render: renderFrame,
 		enableShader: function(shaderScript) { useGl = true; initGl(); },
 		disableShader: function() { useGl = false; initSoftRender(); }
