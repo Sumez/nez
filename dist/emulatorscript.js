@@ -54,14 +54,33 @@ window.emu = (function() {
 	var mapChrRead, mapChrWrite;
 
 /*
-Support for features with browser prefixes and the like... fixes weird shortcomings in:
+Support for features with browser prefixes and other strange quirks... fixes weird shortcomings in:
 - safari on ios
 
 */
 
+// Safari (all versions) still prefix this for reasons unknown.. interface is the same, so just polyfill it.
 if (!window.AudioContext && window.webkitAudioContext) {
     window.AudioContext = window.webkitAudioContext;
-}var frame = 0;
+}
+
+// Disable the pinch-to-zoom behavior on ios. As nice as it is for reading, it's extremely easy to trigger this
+// while trying to play a game, and that ends up ruining the experience.
+document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+    document.body.style.zoom = 1;
+});
+
+document.addEventListener('gesturechange', function(e) {
+    e.preventDefault();
+    document.body.style.zoom = 1;
+});
+
+document.addEventListener('gestureend', function(e) {
+    e.preventDefault();
+    document.body.style.zoom = 1;
+});
+var frame = 0;
 var scanline = 0;
 var pixelOnFrame = 0;
 var pixelOnScanline = 0;
@@ -720,30 +739,7 @@ var NewApu = (function() {
 	function initAudio() {
 		if (audio || !enableAudioEmulation) return;
 		
-		audio = new AudioContext();
-
-		var buffer = audio.createBuffer(1, 1, 44100)
-		var dummy = audio.createBufferSource()
-		dummy.buffer = buffer
-		dummy.connect(audio.destination)
-		dummy.start(0)
-		dummy.disconnect()
-		
-		audio.close() // dispose old context
-		audio = new AudioContext();
-	
-
-		// Trigger a sound on IOS after a touch, which should allow us to start playing audio when the rom is ready.
-		function initializeIosSound() {
-			var oscillator = audio.createOscillator();
-			oscillator.frequency.value = 400;
-			oscillator.connect(audio.destination);
-			oscillator.start(0);
-			oscillator.stop(0.5); // TODO: Turn off this beep
-		}
-		document.addEventListener('touchend', initializeIosSound);
-		initializeIosSound();
-
+		audio = new AudioContext({sampleRate: 44100});
 
 		//var compressor = audio.createDynamicsCompressor();
 		masterVolume = audio.createGain();
@@ -786,6 +782,15 @@ clockStep *= 0.97;
 			ctx.canvas.style.width = "300px";
 			output.canvas.parentNode.appendChild(ctx.canvas);
 		}
+		
+		// Trigger a sound on IOS after a touch, which should allow us to start playing audio when the rom is ready.
+		var oscillator = audio.createOscillator();
+		oscillator.frequency.value = 400;
+		oscillator.connect(audio.destination);
+		oscillator.start(0);
+		oscillator.stop(0); 
+		
+
 	}
 
 	var npulse1 = {
@@ -980,6 +985,13 @@ clockStep *= 0.97;
 		
 		var mixPulse = 95.88 / ((8128 / (npulse1.sample + npulse2.sample)) + 100);
 		var mixTnd = 159.79 / (1 / ((ntriangle.sample / 8227) + (nnoise.sample / 12241) + (dmc.sample / 22638)) + 100);
+		// NOTE: If you pass in a NaN value (which happens sometimes... for some reason) ios will just cut all audio.
+		if (Number.isNaN(mixPulse)) {
+			mixPulse = 0;
+		}
+		if (Number.isNaN(mixTnd)) {
+			mixTnd = 0;
+		}
 		sample = mixPulse + mixTnd;
 		//sample = (npulse1.sample + npulse2.sample);
 	}
