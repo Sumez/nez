@@ -495,12 +495,10 @@ clockStep *= 0.97;
 			hwRegisters[0x4001] = new HwRegister(null, function(val) { sweep(pulse1, val); });
 			hwRegisters[0x4005] = new HwRegister(null, function(val) { sweep(pulse2, val); });
 
-
 			hwRegisters[0x4002] = new HwRegister(null, function(val) { timer(pulse1, val); });
 			hwRegisters[0x4006] = new HwRegister(null, function(val) { timer(pulse2, val); });
 			hwRegisters[0x400A] = new HwRegister(null, function(val) { timer(triangle, val); });
 			hwRegisters[0x400E] = new HwRegister(null, noisePeriod);
-
 
 			hwRegisters[0x4003] = new HwRegister(null, function(val) { length(pulse1, val); });
 			hwRegisters[0x4007] = new HwRegister(null, function(val) { length(pulse2, val); });

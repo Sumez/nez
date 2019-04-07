@@ -315,7 +315,7 @@
 		}
 
 		.controllerDisp button {
-    		padding: 15px 20px;
+			padding: 15px 20px;
 			appearance: none;
 			-webkit-appearance: none;
 			-moz-appearance: none;
