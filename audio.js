@@ -48,7 +48,8 @@ var NewApu = (function() {
 	function initAudio() {
 		if (audio || !enableAudioEmulation) return;
 		
-		audio = new AudioContext();
+		audio = new AudioContext({sampleRate: 44100});
+
 		//var compressor = audio.createDynamicsCompressor();
 		masterVolume = audio.createGain();
 		masterVolume.gain.setValueAtTime(masterVolumeValue, audio.currentTime);
@@ -90,6 +91,15 @@ clockStep *= 0.97;
 			ctx.canvas.style.width = "300px";
 			output.canvas.parentNode.appendChild(ctx.canvas);
 		}
+		
+		// Trigger a sound on IOS after a touch, which should allow us to start playing audio when the rom is ready.
+		var oscillator = audio.createOscillator();
+		oscillator.frequency.value = 400;
+		oscillator.connect(audio.destination);
+		oscillator.start(0);
+		oscillator.stop(0); 
+		
+
 	}
 
 	var npulse1 = {
@@ -283,6 +293,13 @@ clockStep *= 0.97;
 		
 		var mixPulse = 95.88 / ((8128 / (npulse1.sample + npulse2.sample)) + 100);
 		var mixTnd = 159.79 / (1 / ((ntriangle.sample / 8227) + (nnoise.sample / 12241) + (dmc.sample / 22638)) + 100);
+		// NOTE: If you pass in a NaN value (which happens sometimes... for some reason) ios will just cut all audio.
+		if (Number.isNaN(mixPulse)) {
+			mixPulse = 0;
+		}
+		if (Number.isNaN(mixTnd)) {
+			mixTnd = 0;
+		}
 		sample = mixPulse + mixTnd;
 		//sample = (npulse1.sample + npulse2.sample);
 	}
@@ -478,10 +495,12 @@ clockStep *= 0.97;
 			hwRegisters[0x4001] = new HwRegister(null, function(val) { sweep(pulse1, val); });
 			hwRegisters[0x4005] = new HwRegister(null, function(val) { sweep(pulse2, val); });
 
+
 			hwRegisters[0x4002] = new HwRegister(null, function(val) { timer(pulse1, val); });
 			hwRegisters[0x4006] = new HwRegister(null, function(val) { timer(pulse2, val); });
 			hwRegisters[0x400A] = new HwRegister(null, function(val) { timer(triangle, val); });
 			hwRegisters[0x400E] = new HwRegister(null, noisePeriod);
+
 
 			hwRegisters[0x4003] = new HwRegister(null, function(val) { length(pulse1, val); });
 			hwRegisters[0x4007] = new HwRegister(null, function(val) { length(pulse2, val); });
