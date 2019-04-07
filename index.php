@@ -321,6 +321,7 @@
 
 		.portrait h2 {
 			margin: 5px auto;
+			font-size: 1em;
 		}
 
 		.portrait .controllerDisp {
@@ -328,6 +329,8 @@
 			padding: 10px 0;
 			position: relative;
 			padding-bottom: 60px;
+			margin: 5px auto;
+			border-width: 5px;
 		}
 
 		.portrait .controllerDisp button {
