@@ -82,6 +82,24 @@
 		};
 	</script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<link rel="stylesheet" href="emulator.css">
+	<style type="text/css">
+		/* embed-specific style overrides */
+		body {
+			background: #000;
+		}
+
+		.emulator {
+			border: none;
+			border-radius: 0;
+			box-shadow: none;
+		}
+
+		.button.shader {
+			/* Feature not yet working, so lets just hide it. */
+			display: none;
+		}
+	</style>
 </head>
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
 	<script type="text/javascript" src="emulatorscript.php?3"></script>
@@ -113,200 +131,6 @@
 			</div>
 		</div>
 	</div>
-	
-	<style type="text/css">
-		.rom-file {
-			-webkit-appearance: none;
-			position: relative;
-			margin-bottom: 10px;
-			height: 38px;
-			font-family: inherit;
-			font-size: 13px;
-			background: inherit;
-			opacity: 0.1;
-			top: -10px;
-			left: -10px;
-		}
-		.rom-file:before {
-			content: '';
-			display: block;
-			min-width: 100%;
-			padding: 10px 5px;
-			background: inherit;
-			cursor: pointer;
-			position: absolute;
-			right: 0;
-			left: 0;
-		}
-		.debug .nes {
-			width: 256px;
-			height: 240px;
-		}
-		.debug .nametable {
-			display: inline-block !important;
-		}
-		canvas {
-			display: block;
-			margin: auto;
-		}
-		.controls {
-			padding: 0 10px;
-			display: flex;
-			align-items: center;
-			justify-content: flex-end;
-		}
-		.controls [type=button], .controls .button {
-			border: none;
-			background: black;
-			color: inherit;
-			text-transform: uppercase;
-			font-weight: bold;
-			font-size: 12px;
-			line-height: 1em;
-			padding: 3px;
-			min-width: 1em;
-			cursor: pointer;
-			position: relative;
-			height: 1.5em;
-		}
-		.controls [type=button].enabled, .controls .button.enabled {
-			background: #333333;
-		}
-		.controls .button img {
-			width: 1em;
-			height: 1em;
-			margin: 3px;
-		}
-		.controls .button.controller img {
-			width: 1.5em;
-			height: 1.5em;
-			margin: 0 3px;
-		}
-		.controls .button.open {
-			width: 1em;
-			height: 1em;
-			overflow: hidden;
-		}
-		.controls .button.open img {
-			position: absolute;
-			top: 0;
-			left: 0;
-			pointer-events: none;
-		}
-		.controls [type=button]:hover, .controls .button:hover {
-			background: #666;
-		}
-		.controls .fas {
-		}
-		.controls [type=button]:active, .controls .button:active {
-			background: #ccc;
-		}
-		.controls [type=range] {
-			-webkit-appearance: none;
-			height: 0.3em;
-			background: #999;
-			width: 80px;
-			vertical-align: baseline;
-		}
-		.controls [type=range]::-webkit-slider-thumb {
-			-webkit-appearance: none;
-			background: white;
-			width: 0.5em;
-			height: 1em;
-		}
-		.controls input {
-			cursor: pointer;
-			outline: none !important;
-		}
-		/* Hide button controls that don't work on mobile devices */
-		.portrait .controls .button.fullscreenButton, .portrait .controls .button.controller {
-			display: none;
-		}
-
-		html {
-			height: 100%;
-		}
-		body {
-			background-color: #000;
-			text-align: center;
-		}
-		.emulator {
-			background: black;
-			color: white;
-			display: inline-block;
-			overflow: hidden;
-		}
-
-		
-		.fullscreen * {
-			display: none !important;
-		}
-		.fullscreen .nes, .fullscreen .emulator {
-			display: block !important;
-		}
-		.fullscreen {
-			background: black;
-			background-image: none;
-		}
-		.fullscreen .emulator {
-			display: block !important;
-			position: absolute !important;
-			top: 0;
-			left: 0;
-			border: none;
-			border-radius: 0;
-			box-shadow: none;
-		}
-		
-		.overlay {
-			color: black;
-			background: white;
-			padding: 20px;
-			width: 230px;
-			margin: auto;
-			position: fixed;
-			top: 150px;
-			left: calc(50vw - 135px);
-			box-shadow: 0 0 4px rgba(0,0,0,0.5);
-		}
-		
-		h2 {
-			font-size: 2em;
-			border-radius: 10px;
-			background: rgba(255,255,255,0.3);
-			max-width: 700px;
-			margin: 20px auto;
-			display: flex;
-			padding: 5px 15px;
-			color: rgba(0,30,50,0.3);
-		}
-		h2 a {
-			color: inherit;
-			margin-right: 10px;
-			font-size: 1.5em;
-		}
-		h2 a:hover, h2 span:hover {
-			color: rgba(0,30,50,0.5);
-		}
-		h2 span {
-			width: 100%;
-			cursor: pointer;
-			padding-top: 10px;
-			text-align: right;
-		}
-		.text {
-			max-width: 600px;
-			margin: 20px auto;
-			text-align: left;
-			color: rgba(0,0,0,0.5);			
-		}
-
-        /* Embed specific stuff */
-        .button.shader {
-            /* Feature not yet working, so lets just hide it. */
-            display: none;
-        }
-	</style>
 	<script type="text/javascript">
 		var config = {};
 		if (localStorage.config) {

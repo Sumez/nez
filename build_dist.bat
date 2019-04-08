@@ -20,3 +20,4 @@ php -d display_errors=0 -r "echo str_replace('emulatorscript.php', 'emulatorscri
 copy *.svg dist
 copy *.glsl dist
 copy *.png dist
+copy *.css dist
