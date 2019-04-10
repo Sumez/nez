@@ -99,6 +99,34 @@
 			/* Feature not yet working, so lets just hide it. */
 			display: none;
 		}
+
+		#infoOverlay {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: #333;
+			opacity: 0.8;
+			z-index: 0;
+		}
+
+		#infoDialog {
+			display: none;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-top: -50px;
+			margin-left: -50px;
+			width: 100px;
+			height: 100px;
+			padding: 20px;
+			background-color: #fff;
+			opacity: 1;
+			z-index: 1;
+		}​
+
 	</style>
 </head>
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
@@ -128,6 +156,9 @@
 			</div>
 			<div title="Full screen" class="button fullscreenButton" onclick="fullscreen()">
 				<img src="fullscreen.svg">
+			</div>
+			<div title="About Emulator" class="button emuInfo" onclick="showInfo()">
+				<img src="info.svg">
 			</div>
 		</div>
 	</div>
@@ -223,6 +254,22 @@
 			$('.button.shader').toggleClass('enabled', config.shaderEnabled);
 			save();
 		}
+
+		function showInfo() {
+			$('#infoOverlay').show();
+			$('#infoDialog').show();
+		}
+
+		function hideInfo() {
+			$('#infoOverlay').hide();
+			$('#infoDialog').hide();
+		}
 	</script>
+
+	<div id="infoOverlay" onclick="hideInfo()">
+	</div>
+	<div id="infoDialog">
+		Fill me out
+	</div>
 </body>
 </html>
