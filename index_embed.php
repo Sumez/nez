@@ -99,6 +99,14 @@
 			/* Feature not yet working, so lets just hide it. */
 			display: none;
 		}
+		
+		#info-close {
+			text-decoration: none;
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			cursor: pointer;
+		}
 
 		#infoOverlay {
 			display: none;
@@ -117,14 +125,16 @@
 			position: absolute;
 			top: 50%;
 			left: 50%;
-			margin-top: -50px;
-			margin-left: -50px;
-			width: 100px;
-			height: 100px;
+			margin-top: -200px;
+			width: 90%;
+			margin-left: -200px;
+			max-width: 400px;
+			max-height: 400px;
 			padding: 20px;
 			background-color: #fff;
 			opacity: 1;
 			z-index: 1;
+			font-size: 150%;
 		}​
 
 	</style>
@@ -269,7 +279,19 @@
 	<div id="infoOverlay" onclick="hideInfo()">
 	</div>
 	<div id="infoDialog">
-		Fill me out
+		<h1>Nez</h1>
+
+		<div id="info-close" onclick="hideInfo()">x</div>
+
+		<p>Nez is a NES emulator developed in javascript. It was originally created as an experiment, but has since become extremely feature rich.</p>
+
+		<p>Nez was written by <a href="https://github.com/Sumez" target="_blank">Sumez</a>. (<a href="https://github.com/Sumez/nez" target="_blank">Main Nez Source</a>)</p>
+
+		<p>It has been adapted for embedding and interaction by <a href="https://github.com/cppchriscpp" target="_blank">cppchriscpp</a>.</p>
+
+		<p><a href="https://github.com/cppchriscpp/nez" target="_blank">Source</a>
+
+		<p>Nez is available under the <a href="https://github.com/Sumez/nez/blob/master/LICENSE" target="_blank">GPL v3</a>.</p>
 	</div>
 </body>
 </html>
