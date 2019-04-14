@@ -15,5 +15,5 @@ jobs:
       - run: >
           if [[ "${CIRCLE_BRANCH}" = "hackery" ]]; then
             git branch -d gh-pages || echo "Branch does not exist... continuing"
-            git checkout -b gh-pages && rm -f *.php *.sh *.bat *.js && cp dist/* . && git add * && git commit -a -m "Automated github pages build [skip ci]" && git push --force --set-upstream origin gh-pages
+            git checkout -b gh-pages && rm -f *.php *.sh *.bat *.js && cp dist/* . && rm -rf dist && git add * && git commit -a -m "Automated github pages build [skip ci]" && git push --force --set-upstream origin gh-pages
           fi
