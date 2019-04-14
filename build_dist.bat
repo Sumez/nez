@@ -21,3 +21,4 @@ copy *.svg dist
 copy *.glsl dist
 copy *.png dist
 copy *.css dist
+copy config.js dist

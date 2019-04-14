@@ -183,7 +183,7 @@ h2 span {
 	padding-top: 10px;
 	text-align: right;
 }
-.text {
+.text, #gameDescription {
 	max-width: 600px;
 	margin: 20px auto;
 	text-align: left;

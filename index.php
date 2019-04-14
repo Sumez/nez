@@ -43,8 +43,10 @@
 			gl_FragColor = uColor;
 		}
 	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="config.js"></script>
 	<script type="text/javascript">
-		window.isDebug = location.href.match(/debug=1$/i) ? true : false;
+		window.isDebug = (location.href.match(/debug=1$/i) || window.EMULATOR_CONFIG.debug) ? true : false;
 		function loadfile(event) {
 			if (!event.files[0] || !event.files[0].name) return;
 			window.emu.startFromFile(event.files[0]);
@@ -57,8 +59,22 @@
 			if (!canvas.webkitRequestFullScreen) return;
 			canvas.webkitRequestFullScreen();
 		};
+
+		$(window.document).on('ready', function() {
+			if (window.EMULATOR_CONFIG.game) {
+				window.emu.startFromUrl(window.EMULATOR_CONFIG.game);
+			}
+
+			if (window.EMULATOR_CONFIG.gameDescription) {
+				$('#gameDescription').html(window.EMULATOR_CONFIG.gameDescription);
+				$('#gameDescriptionTitle').show();
+			}
+			if (window.EMULATOR_CONFIG.gameTitle) {
+				$('#gameTitle').text(window.EMULATOR_CONFIG.gameTitle);
+			}
+		});
+
 	</script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<link rel="stylesheet" href="emulator.css">
 </head>
 <body <?php if ($_GET['debug'] == '1') { ?>class="debug"<?php } ?>>
@@ -207,40 +223,33 @@
 			<button class="b" onmousedown="emu.controller.bPressed()" ontouchstart="emu.controller.bPressed()" ontouchend="emu.controller.bReleased()" onmouseup="emu.controller.bReleased()">B</button>
 		</div>
 	</div>
-
+	<h2 id="gameDescriptionTitle" style="display: none;">
+		<span onclick="$('#gameDescription').toggle(); $(window).scrollTop(100000);">
+			About <span id="gameTitle">This Game</span>
+			<i class="fas fa-chevron-circle-down"></i>
+		</span>
+	</h2>
+	<div id="gameDescription" style="display: none">
+		This is a game...
+	</div>
 	<h2>
-		<a href="https://twitter.com/sumez" target="_blank"><i class="fab fa-twitter-square"></i></a>
-		<a href="https://github.com/sumez/nez" target="_blank"><i class="fab fa-github-square"></i></a>
+		<a href="https://twitter.com/cppchriscpp" target="_blank"><i class="fab fa-twitter-square"></i></a>
+		<a href="https://github.com/cppchriscpp/nez" target="_blank"><i class="fab fa-github-square"></i></a>
 		<span onclick="$('.text').toggle(); $(window).scrollTop(100000)">
 			More about NEZ <i class="fas fa-chevron-circle-down"></i>
 		</span>
 	</h2>
 	<div class="text" style="display: none;">
-		This is an emulator started as a short experiment to test how feasible it even was to pull off such a thing in JavaScript, and quickly improved to support many more games and features than I thought it possibly could, but it is also still evolving.<br />
-		If you see any glaring issues with certain games, or other support you'd like me to add, feel free to <a href="https://twitter.com/sumez" target="_blank">drop me a line</a>, and I will probably bump up the priority.<br /><br />
-		~ Sumez<br />
+		Nez is an impressive web-based emulator <a href="https://github.com/sumez/nez" target="_blank">originally written by Sumez</a>. He has <a href="https://twitter.com/sumez" target="_blank">a Twitter</a> too!<br /> <br />
+
+		He wrote the code that makes this whole thing tick, and deserves full credit!<br /><br />
+		
+		I forked this emulator to add a few new features, and to try to make it as friendly as possible for individual developers to create an emulator for their games. I added an easy way to auto-load games and an embed feature,
+		so if you want to set this up for yourself, it shouldn't be hard! Check it out <a href="https://github.com/cppchriscpp/nez" target="_blank">on Github</a> for instructions on setting it up</a>.<br /><br />
+		My Twitter is open for feedback as well! <a href="https://twitter.com/cppchriscpp" target="_blank">@cppchriscpp</a><br /><br />
+		~ Chris<br />
+
 		<br />
-		Features currently in the pipline for the future:<br /><br />
-		<strong>Support / accuracy:</strong>
-		<ul>
-			<li>Support for less common mappers (most notably VRC6 and MMC2 I guess?)</li>
-			<li>Controller support</li>
-			<li>Improve mouse support</li>
-			<li>50hz/PAL support</li>
-			<li>Famicom Disk System support</li>
-			<li>Improve CPU/PPU cycle synchronization</li>
-			<li>All unofficial opcodes</li>
-			<li>Better CRT shaders (correct scanlines, color bleed, etc)</li>
-			<li>Debug features (<a href="?debug=1">look here</a> for some testing features, like nametable, CHR and wavetable displays)</li>
-			<li>Save states.... maaybe?</li>
-		</ul>
-		<strong>Technical improvements</strong>
-		<ul>
-			<li>Better performance across all areas (most notably PPU emulation)</li>
-			<li>Average audio samples to improve quality and smoothen out high frequent tones</li>
-			<li><s>Re-implement mappers to actually map addresses, rather than just copying data around</s> find a new way to do this without a huge performance overhead</li>
-			<li>Change PPU emulation to use actual PPU registers rather than abstract variables that don't interfer with eachother in the same way</li>
-		</ul>
 	</div>
 </body>
 </html>

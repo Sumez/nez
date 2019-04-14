@@ -47,30 +47,13 @@
 			gl_FragColor = uColor;
 		}
 	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>=
+	<script type="text/javascript" src="config.js"></script>
 	<script type="text/javascript">
-		window.isDebug = location.href.match(/debug=1$/i) ? true : false;
+		window.isDebug = (location.href.match(/debug=1$/i) || window.EMULATOR_CONFIG.debug) ? true : false;
 		function loadfile(event) {
-				var file = event.files[0];
-				if (!file) return;
-				if (!file.name.match(/\.nes$/i)) {
-					alert('invalid file');
-					return;
-				}
-				var reader = new FileReader();
-				reader.onload = function (e) {
-
-					setTimeout(function() { 
-
-						window.emu.volume($('[type=range]').val() / 100)
-						if (!window.emu.loadRomData(e.target.result, file.name)) {
-							return;
-						}
-						//$('.button.open').remove();
-						window.emu.run($('canvas')[0], window.isDebug);
-					});
-
-				};
-				reader.readAsArrayBuffer(file);
+			if (!event.files[0] || !event.files[0].name) return;
+			window.emu.startFromFile(event.files[0]);
 		}
 		
 		function fullscreen() {
@@ -80,8 +63,13 @@
 			if (!canvas.webkitRequestFullScreen) return;
 			canvas.webkitRequestFullScreen();
 		};
+
+		$(window.document).on('ready', function() {
+			if (window.EMULATOR_CONFIG.game) {
+				window.emu.startFromUrl(window.EMULATOR_CONFIG.game);
+			}
+		});
 	</script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<link rel="stylesheet" href="emulator.css">
 	<link rel="stylesheet" href="embed.css">
 </head>
