@@ -1,19 +1,26 @@
 # Nez
-This is a web based NES emulator. It has been forked from 
+This is a web-based NES emulator. It has been forked from 
 <a href="https://github.com/sumez">Sumez</a>'s 
 <a href="https://github.com/sumez/nez">Nez emulator</a> to support a few new features, and also to make it as easy 
 as possible for individual developers to create a web-facing emulator for their games.
 
+**All updates to this live in the `hackery` branch.** 
+The `master` branch will be kept up to date with the `Sumez/nez` `master` branch.
+
 # Setting up the emulator
 
-You have a number of options for setting up the emulator. Pick whichever one is easiest for you!
+You have a number of options for setting up the emulator - all detailed below. 
+Pick whichever one is easiest for you!
 
-## Setting it up using PHP
+You can get the files you need by clicking the `Download Zip` button on Github. (likely a green button at the top right)
 
- Copy all of the files from the repository to your webserver. That's it; you're done! 
+## Setting it up using a PHP web server/host
+
+ Copy all of the files from the top-level nez folder to your webserver. That's all - this is one of the simplest 
+ options.
+
+ Navigate to it on the web, and you should see Nez.
  
- (Note: You can get the files by using the "Download Zip" option on the repository.)
-
 ## Setting it up using plain html (Suitable for most web hosts, including amazon s3)
 
 If you don't have (or want) PHP support, you can set the emulator up without it.
@@ -23,13 +30,19 @@ folder. Copy all of the files from the `dist` folder to your web server.
 
 ## Setting it up using github pages
 
-If you fork this version of `Nez`, you will be able to turn on Github pages, and use this to play your game. You will 
-have to modify the url that github gives you slightly to add the `dist` directory. 
+If you fork this version of `Nez` on Github, you can use it to play your own game. This requires a tiny bit more
+work than the other options, but works just as well.
 
-So if github shows you `https://yourname.github.io/nez/`, you will actually need to go to 
-`https://yourname.github.io/nez/dist/`instead. 
+How to do it: 
+1. Fork the `Nez` repository from [cppchriscpp's github](https://github.com/cppchriscpp/nez) to your own account.
+2. Make a change to `readme.md` and save/commit it. (This works around a github quirk and publishes the site for you.)
+3. Go to the `settings` tab on your repository, then to `Branches` and change the default branch to `gh-pages`. 
+   ![context](./docs/gh_branches.png)
+4. Check your site to make sure it is up and working. You can find the url under the `Settings` tab, under `Options`.
+   ![context2](./docs/gh_site.png)
 
-Similarly, you will need to update the `config.js` file in the `dist` folder.
+**Important**: Any changes you make to configuration **must be on the `gh-pages` branch**. 
+Changing other branches will not work.
 
 # Setting Nez up to automatically play your game
 
@@ -38,7 +51,8 @@ Once you have set up Nez hosted somewhere, you can set it up to start your game 
 All you need to do is edit a configuration file called `config.js` - it should be in the same folder as `index.php` or
 `index.html`. (Whichever one you set up above) 
 
-There is a setting called `game` which you can point to rom file to load. There are a few ways you can set it.
+There is a setting called `game` which you can point to rom file to load. There are a few ways you can set it. Pick
+either of the options below for details.
 
 ## Hosting the rom with the emulator
 
@@ -71,6 +85,8 @@ which is built to support this. If you open it in your browser, you will see the
 
 You will want to size the iframe carefully (using css) to make sure the game looks right. The emulator can scale 
 to a few sizes - the most popular one is `512px` by `480px`. 
+
+Note that audio on ios devices is NOT supported using the embedding method. (It is supported on the regular site.)
 
 # Adding a description of the game
 
@@ -105,5 +121,3 @@ to do this, unless you are working with it locally.
 
 If you want to rebuild the `dist` directory, you can run either `build_dist.sh` (Linux and Mac) or 
 `build_dist.bat` (Windows) - this script requires that you have PHP installed and on your path. 
-
-**My hacks will be in the `hackery` branch. master will be kept up to date with the `Sumez/nez` `master` branch.**
