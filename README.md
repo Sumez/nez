@@ -124,29 +124,29 @@ If you want to rebuild the `dist` directory, you can run either `build_dist.sh` 
 
 ## Starting games from javascript
 
-If you have an iframe embedded on the same site as Nez is hosted, or you build Nez directly into your website 
-(possible, but not actively supported)  you can start a game using a javascript function instead.
+If you have an iframe embedded _on the same site as Nez is hosted_, or you build Nez directly into your website 
+(possible, but not actively supported) you can start a game using a javascript function instead.
 
 You can use either of the following: 
 
 ```javascript
 // Load a rom from a web-based url. This can be a relative path if your game is on the same server.
-window.emu.preloadUrl('https://website.com/rom.nes');
+document.getElementById('nes-iframe').contentWindow.emu.preloadUrl('https://website.com/rom.nes');
 
 // Load a rom file using the result from the onchange event of a file input
-window.emu.preloadFile(event.files[0]);
+document.getElementById('nes-iframe').contentWindow.emu.preloadFile(event.files[0]);
 ```
 
 The method above is preferred because it works best on mobile devices. If you would prefer start the game immediately,
 you can also use the following commands. Note that **this method will result in no sound on mobile devices**.
 
 ```javascript
-// Load a rom from a web-based url. This can be a relative path if your game is on the same server.
-window.emu.startFromUrl('https://website.com/rom.nes');
+// Start a rom from a web-based url. This can be a relative path if your game is on the same server.
+document.getElementById('nes-iframe').contentWindow.emu.startFromUrl('https://website.com/rom.nes');
 
-// Load a rom file using the result from the onchange event of a file input
-window.emu.startFromFile(event.files[0]);
+// Start a rom file using the result from the onchange event of a file input
+document.getElementById('nes-iframe').contentWindow.emu.startFromFile(event.files[0]);
 ```
 
-Make sure the emulator has fully loaded before running this - you may have to put it in a setTimeout, or something
-similar.
+Make sure the emulator has fully loaded before running this - you may have to put it in a `setTimeout`, or something
+similar. 
