@@ -3,6 +3,7 @@
 
 window.emu = (function() {
 	
+	var preloadedData = {};
 	var cart = {
 		prg: null, chr: null
 	}
@@ -3471,6 +3472,25 @@ Api.getSram = function() {
 	};
 	detectFps();
 
+	function PreloadFile(file) {
+		preloadedData = {file: file};
+	}
+
+	function PreloadUrl(url, romName) {
+		preloadedData = {url: url, romName: romName};
+	}
+
+	function StartPreloadedGame() {
+		if (preloadedData.file) {
+			StartFromFile(preloadedData.file);
+		} else if (preloadedData.url) {
+			StartFromUrl(preloadedData.url, preloadedData.romName);
+		} else {
+			// Nothing to do here
+			$('#clickMe').hide();
+			$('.emulator').show();
+		}
+	}
 	
 	// NOTE: This isn't very clean, and likely needs some tweaking if it's to go back into master.
 	// If nothing else, probably want to take the canvas as an input.. maybe error handling and volume too.
@@ -3495,6 +3515,8 @@ Api.getSram = function() {
 
 		};
 		reader.readAsArrayBuffer(file);
+		$('#clickMe').hide();
+		$('.emulator').show();
 
 	}
 
@@ -3515,6 +3537,8 @@ Api.getSram = function() {
 		};
 
 		oReq.send(null);
+		$('#clickMe').hide();
+		$('.emulator').show();
 	}
 
 
@@ -3547,7 +3571,10 @@ Api.getSram = function() {
 		disableShader: function() { useGl = false; initSoftRender(); },
 		Api: Api,
 		startFromUrl: StartFromUrl,
-		startFromFile: StartFromFile
+		startFromFile: StartFromFile,
+		preloadFile: PreloadFile,
+		preloadUrl: PreloadUrl,
+		startPreloadedGame: StartPreloadedGame
 		
 		
 	};

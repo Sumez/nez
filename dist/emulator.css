@@ -308,3 +308,35 @@ h2 span {
 	user-select: none;
 	touch-action: manipulation;
 }
+
+#clickMe.embed {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#clickMe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer; 
+    background-color: #d6d8d9; 
+    border-color: #c6c8ca; 
+    color: #1b1e21; 
+    text-align:center; 
+    margin: auto;
+    position: relative;
+}
+
+#clickMe h1 {
+    font-size: 6em;
+    position: absolute;
+    top: 35%;
+    left: 35%;
+    width: 30%;
+    height: 30%;
+}
+
+.portrait #clickMe h1 {
+    font-size: 3em;
+}
