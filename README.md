@@ -130,12 +130,24 @@ If you have an iframe embedded on the same site as Nez is hosted, or you build N
 You can use either of the following: 
 
 ```javascript
-// Start a rom from a web-based url. This can be a relative path if your game is on the same server.
+// Load a rom from a web-based url. This can be a relative path if your game is on the same server.
+window.emu.preloadUrl('https://website.com/rom.nes');
+
+// Load a rom file using the result from the onchange event of a file input
+window.emu.preloadFile(event.files[0]);
+```
+
+The method above is preferred because it works best on mobile devices. If you would prefer start the game immediately,
+you can also use the following commands. Note that **this method will result in no sound on mobile devices**.
+
+```javascript
+// Load a rom from a web-based url. This can be a relative path if your game is on the same server.
 window.emu.startFromUrl('https://website.com/rom.nes');
 
-// Start a rom file using the result from the onchange event of a file input
+// Load a rom file using the result from the onchange event of a file input
 window.emu.startFromFile(event.files[0]);
 ```
+
 
 Make sure the emulator has fully loaded before running this - you may have to put it in a setTimeout, or something
 similar.
