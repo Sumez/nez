@@ -148,6 +148,5 @@ window.emu.startFromUrl('https://website.com/rom.nes');
 window.emu.startFromFile(event.files[0]);
 ```
 
-
 Make sure the emulator has fully loaded before running this - you may have to put it in a setTimeout, or something
 similar.
