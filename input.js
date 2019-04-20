@@ -194,6 +194,9 @@ function buttonReleased(button) {
 	if (controllers[0] & button) {
 		controllers[0] ^= button;
 	}
+
+	// Works around an embed issue where the game loses focus when you use the controller...
+	$('body').focus();
 }
 
 Controller.aPressed = function() { return buttonPressed(ABUTTON); };
