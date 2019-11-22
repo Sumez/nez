@@ -150,3 +150,13 @@ document.getElementById('nes-iframe').contentWindow.emu.startFromFile(event.file
 
 Make sure the emulator has fully loaded before running this - you may have to put it in a `setTimeout`, or something
 similar. 
+
+## API Usage
+
+If you _really_ want to mess with your games, there are a few Api methods that let you get
+down and dirty with things like SRAM. Eventually you'll be able to define your own custom
+opcode, if you so desire. (Be careful; this can definitely break things if you're not
+careful.
+
+The methods are defined in [./api.js](./api.js) for now. Better documentation may come
+later, but hopefully they are self-explanatory enough to get started.
