@@ -3062,7 +3062,16 @@ Api.setSramValues = function(addr, values) {
     for (var i = 0; i < values.length; i++) {
         cpuMemory[0x6000+addr+i] = values[i];
     }
-};		
+};
+
+Api.addOpcodeHook = function(opcode, hookfn) {
+    var _origCb = opcodes[opcode] || function(){}
+
+    opcodes[opcode] = function() {
+        hookfn();
+        _origCb()
+    };
+}		
 	var prgData;
 	var chrData;
 	var chrRam = false;

@@ -18,3 +18,12 @@ Api.setSramValues = function(addr, values) {
         cpuMemory[0x6000+addr+i] = values[i];
     }
 };
+
+Api.addOpcodeHook = function(opcode, hookfn) {
+    var _origCb = opcodes[opcode] || function(){}
+
+    opcodes[opcode] = function() {
+        hookfn();
+        _origCb()
+    };
+}
