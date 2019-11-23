@@ -23,7 +23,12 @@ Api.addOpcodeHook = function(opcode, hookfn) {
     var _origCb = opcodes[opcode] || function(){}
 
     opcodes[opcode] = function() {
-        hookfn();
+        var cpu = {
+            regA: cpuRegisters[A],
+            regX: cpuRegisters[X],
+            regY: cpuRegisters[Y]
+        };
+        hookfn(cpu, cpuMemory);
         _origCb()
     };
 }
