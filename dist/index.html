@@ -231,8 +231,8 @@
 		</div>
 
 		<div class="buttons">
-			<button class="a" onmousedown="emu.controller.aPressed()" ontouchstart="emu.controller.aPressed()" ontouchend="emu.controller.aReleased()" onmouseup="emu.controller.aReleased()">A</button>
 			<button class="b" onmousedown="emu.controller.bPressed()" ontouchstart="emu.controller.bPressed()" ontouchend="emu.controller.bReleased()" onmouseup="emu.controller.bReleased()">B</button>
+			<button class="a" onmousedown="emu.controller.aPressed()" ontouchstart="emu.controller.aPressed()" ontouchend="emu.controller.aReleased()" onmouseup="emu.controller.aReleased()">A</button>
 		</div>
 	</div>
 	<h2 id="gameDescriptionTitle" style="display: none;">
